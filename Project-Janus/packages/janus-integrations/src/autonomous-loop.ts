@@ -4,13 +4,17 @@ import type { JanusConfig } from "./config.js";
 import { resolveOrchestratorRoot } from "./config.js";
 import { AssetTaskExecutor, type AssetTaskResult } from "./asset-task-executor.js";
 import { ManualPatchExecutor } from "./manual-patch-executor.js";
+import {
+  PythonSandboxExecutor,
+  type PythonSandboxResult,
+} from "./python-sandbox-executor.js";
 import { RelBridge } from "./rel-bridge.js";
 import { JanusUnifiedService } from "./unified-service.js";
 
 export interface LoopRoundResult {
   round: number;
   task_id: string;
-  kind: "identity" | "asset" | "manual";
+  kind: "identity" | "asset" | "manual" | "python_sandbox";
   status: TaskStatus;
   passed: boolean;
   detail?: string;
@@ -35,6 +39,7 @@ export class JanusAutonomousLoop {
   private readonly orchestrator: OrchestratorService;
   private readonly unified: JanusUnifiedService;
   private readonly assets: AssetTaskExecutor;
+  private readonly pythonSandbox: PythonSandboxExecutor;
   private readonly manual: ManualPatchExecutor;
   private readonly relBridge: RelBridge;
 
@@ -44,6 +49,7 @@ export class JanusAutonomousLoop {
     this.orchestrator = new OrchestratorService(orchestratorRoot);
     this.unified = new JanusUnifiedService(janusRoot, config);
     this.assets = new AssetTaskExecutor(janusRoot, config);
+    this.pythonSandbox = new PythonSandboxExecutor(janusRoot, config);
     this.manual = new ManualPatchExecutor(janusRoot, config);
     this.relBridge = new RelBridge(janusRoot, config);
   }
@@ -150,6 +156,10 @@ export class JanusAutonomousLoop {
       return this.executeAssetChild(child);
     }
 
+    if (child.validation_profile === "python-sandbox-v1") {
+      return this.executePythonSandboxChild(child);
+    }
+
     const patchMode = parsePatchMode(child);
 
     if (patchMode === "identity") {
@@ -181,6 +191,19 @@ export class JanusAutonomousLoop {
       status: result.status,
       passed: result.passed,
       detail: `${result.action}:${result.mod_id}`,
+    };
+  }
+
+  private async executePythonSandboxChild(
+    child: Task,
+  ): Promise<Omit<LoopRoundResult, "round">> {
+    const result: PythonSandboxResult = await this.pythonSandbox.execute(child.id);
+    return {
+      task_id: child.id,
+      kind: "python_sandbox",
+      status: result.status,
+      passed: result.passed,
+      detail: `${result.heal_status}:${result.source_files.join(",")}`,
     };
   }
 }

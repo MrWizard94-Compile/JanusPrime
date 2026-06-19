@@ -9,6 +9,16 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://127.0.0.1:11434/api/tags >/dev/null || wget -q -O /dev/null http://127.0.0.1:11434/api/tags || ollama list >/dev/null 2>&1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
 
   memory:
@@ -31,7 +41,18 @@ services:
       - ./Smart-Library/.hf_cache:/root/.cache/huggingface
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
-      - ollama
+      ollama:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request, json; r=urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5); d=json.load(r); exit(0 if d.get('status')=='ok' else 1)\"",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     restart: unless-stopped
 
   cognition:
@@ -54,7 +75,18 @@ services:
     volumes:
       - ${REL_DATA_PATH:-C:/REL_Codex_Variant/data}:/app/runtime/data
     depends_on:
-      - ollama
+      ollama:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://127.0.0.1:8080/health >/dev/null || wget -q -O /dev/null http://127.0.0.1:8080/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
     restart: unless-stopped
 
 volumes:

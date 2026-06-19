@@ -23,7 +23,9 @@
     "e2e:framedblocks": "node scripts/e2e-framedblocks.mjs",
     "e2e:framedblocks-batch01": "node scripts/e2e-framedblocks-batch01.mjs",
     "e2e:orchestration": "node scripts/e2e-orchestration.mjs",
-    "e2e:services": "node scripts/e2e-services-probe.mjs"
+    "e2e:services": "node scripts/e2e-services-probe.mjs",
+    "e2e:sandbox": "node scripts/e2e-sandbox-probe.mjs",
+    "e2e:smoke": "node scripts/e2e-loop-smoke.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.15.21",
