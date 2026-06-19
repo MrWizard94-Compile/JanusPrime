@@ -48,12 +48,14 @@ export class MemoryClient {
   private readonly apiKey: string | undefined;
   private readonly contextLimit: number;
   private readonly maxContextChars: number;
+  private readonly allowQueryLlmFallback: boolean;
 
   constructor(config: JanusConfig["components"]["memory"]) {
     this.baseUrl = config.url.replace(/\/$/, "");
     this.apiKey = process.env[config.api_key_env];
     this.contextLimit = config.context_limit;
     this.maxContextChars = config.max_context_chars;
+    this.allowQueryLlmFallback = config.allow_query_llm_fallback;
   }
 
   async health(): Promise<MemoryHealth> {
@@ -96,7 +98,11 @@ export class MemoryClient {
         return body.slices.slice(0, this.contextLimit);
       }
     } catch {
-      // Fall through to legacy /query path
+      // /query/context unavailable — optionally fall back to legacy /query path
+    }
+
+    if (!this.allowQueryLlmFallback) {
+      return [];
     }
 
     const result = await this.query(query);

@@ -1,0 +1,64 @@
+# JanusPrime monorepo CI
+# Covers Project-Janus (orchestrator) and Smart-Library (memory service).
+# AssetConverter-sparse sources are gitignored / vendored locally — not built here.
+# REL (Cognition) lives in a separate repo — not part of this workflow.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  project-janus:
+    name: Project-Janus
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Project-Janus
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: Project-Janus/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test
+
+  smart-library:
+    name: Smart-Library
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Smart-Library
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: Smart-Library/smart_code_lib/requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r smart_code_lib/requirements-dev.txt
+
+      - name: Run tests
+        run: python -m pytest tests/ -v

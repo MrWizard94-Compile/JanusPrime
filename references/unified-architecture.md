@@ -126,14 +126,14 @@ janus status
 ```
 JanusPrime/                     # Unified workspace root (repo: JanusPrime)
 ├── janus.config.json           # Root configuration
-├── .aether/                    # Unified task queue + receipts
 ├── references/                 # Architecture + API docs
 ├── Project-Janus/              # Orchestrator monorepo (Aether)
+│   ├── .aether/                # Task queue + validation receipts (runtime; see state_dir)
+│   └── workloads/              # Registered workload manifests
+│       ├── framedblocks/       # Code workload (NeoForge mixin)
+│       └── omni32/             # Asset workload manifest
 ├── Smart-Library/              # Memory + healing service
 ├── AssetConverter-sparse/      # Omni32 asset engine
-├── workloads/                  # Registered workloads
-│   ├── framedblocks/           # Code workload (in Project-Janus)
-│   └── omni32/                 # Asset workload manifest
 └── docker-compose.yml          # Service orchestration
 ```
 

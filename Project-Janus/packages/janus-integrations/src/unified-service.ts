@@ -172,12 +172,7 @@ export class JanusUnifiedService {
       }
     }
 
-    unified.token_estimate_chars = Math.min(
-      unified.token_estimate_chars,
-      this.config.token_policy.brief_max_chars,
-    );
-
-    return unified;
+    return enforceBriefBudget(unified, this.config.token_policy.brief_max_chars);
   }
 
   async buildRepairContext(taskId: string): Promise<RepairContext> {
@@ -462,6 +457,298 @@ function estimateChars(brief: ExecutorBrief): number {
     brief.files_in_scope.join("").length +
     (brief.last_validation_errors?.reduce((sum, error) => sum + error.message.length, 0) ?? 0)
   );
+}
+
+export function measureBriefContentChars(unified: UnifiedBrief): number {
+  const base = estimateChars(unified);
+  const soul = unified.soul_doctrine?.length ?? 0;
+  const resolved =
+    unified.resolved_context?.reduce((sum, item) => sum + item.excerpt.length, 0) ?? 0;
+  const memory = unified.memory_context?.join("").length ?? 0;
+  const repair = unified.repair_hints?.join("").length ?? 0;
+  return base + soul + resolved + memory + repair;
+}
+
+export function enforceBriefBudget(unified: UnifiedBrief, maxChars: number): UnifiedBrief {
+  const result: UnifiedBrief = { ...unified };
+
+  if (unified.memory_context) {
+    result.memory_context = [...unified.memory_context];
+  }
+  if (unified.repair_hints) {
+    result.repair_hints = [...unified.repair_hints];
+  }
+  if (unified.resolved_context) {
+    result.resolved_context = unified.resolved_context.map((item) => ({ ...item }));
+  }
+
+  if (measureBriefContentChars(result) <= maxChars) {
+    result.token_estimate_chars = measureBriefContentChars(result);
+    return result;
+  }
+
+  truncateMemoryContext(result, maxChars);
+  truncateRepairHints(result, maxChars);
+  truncateResolvedContext(result, maxChars);
+  truncateSoulDoctrine(result, maxChars);
+
+  if (measureBriefContentChars(result) > maxChars) {
+    truncateBaseBriefFields(result, maxChars);
+  }
+
+  if (measureBriefContentChars(result) > maxChars) {
+    proportionallyTruncateBrief(result, maxChars);
+  }
+
+  result.token_estimate_chars = measureBriefContentChars(result);
+  return result;
+}
+
+function truncateMemoryContext(unified: UnifiedBrief, maxChars: number): void {
+  if (!unified.memory_context) {
+    return;
+  }
+
+  while (measureBriefContentChars(unified) > maxChars && unified.memory_context.length > 0) {
+    const lastIndex = unified.memory_context.length - 1;
+    const lastSlice = unified.memory_context[lastIndex]!;
+    const excess = measureBriefContentChars(unified) - maxChars;
+
+    if (lastSlice.length > excess && lastSlice.length > 3) {
+      unified.memory_context[lastIndex] = truncate(lastSlice, lastSlice.length - excess);
+      break;
+    }
+
+    unified.memory_context.pop();
+  }
+
+  if (unified.memory_context.length === 0) {
+    delete unified.memory_context;
+  }
+}
+
+function truncateRepairHints(unified: UnifiedBrief, maxChars: number): void {
+  if (!unified.repair_hints) {
+    return;
+  }
+
+  while (measureBriefContentChars(unified) > maxChars && unified.repair_hints.length > 0) {
+    const lastIndex = unified.repair_hints.length - 1;
+    const lastHint = unified.repair_hints[lastIndex]!;
+    const excess = measureBriefContentChars(unified) - maxChars;
+
+    if (lastHint.length > excess && lastHint.length > 3) {
+      unified.repair_hints[lastIndex] = truncate(lastHint, lastHint.length - excess);
+      break;
+    }
+
+    unified.repair_hints.pop();
+  }
+
+  if (unified.repair_hints.length === 0) {
+    delete unified.repair_hints;
+  }
+}
+
+function truncateResolvedContext(unified: UnifiedBrief, maxChars: number): void {
+  if (!unified.resolved_context) {
+    return;
+  }
+
+  while (measureBriefContentChars(unified) > maxChars && unified.resolved_context.length > 0) {
+    const lastIndex = unified.resolved_context.length - 1;
+    const lastEntry = unified.resolved_context[lastIndex]!;
+    const excess = measureBriefContentChars(unified) - maxChars;
+
+    if (lastEntry.excerpt.length > excess && lastEntry.excerpt.length > 3) {
+      lastEntry.excerpt = truncate(lastEntry.excerpt, lastEntry.excerpt.length - excess);
+      break;
+    }
+
+    unified.resolved_context.pop();
+  }
+
+  if (unified.resolved_context.length === 0) {
+    delete unified.resolved_context;
+  }
+}
+
+function truncateSoulDoctrine(unified: UnifiedBrief, maxChars: number): void {
+  if (!unified.soul_doctrine || measureBriefContentChars(unified) <= maxChars) {
+    return;
+  }
+
+  const excess = measureBriefContentChars(unified) - maxChars;
+  const nextLength = Math.max(0, unified.soul_doctrine.length - excess);
+  unified.soul_doctrine = truncate(unified.soul_doctrine, nextLength);
+
+  if (unified.soul_doctrine.length === 0) {
+    delete unified.soul_doctrine;
+  }
+}
+
+function truncateBaseBriefFields(unified: UnifiedBrief, maxChars: number): void {
+  if (unified.last_validation_errors && measureBriefContentChars(unified) > maxChars) {
+    unified.last_validation_errors = [];
+  }
+
+  while (measureBriefContentChars(unified) > maxChars && unified.constraints.length > 0) {
+    unified.constraints.pop();
+  }
+
+  while (measureBriefContentChars(unified) > maxChars && unified.files_in_scope.length > 0) {
+    unified.files_in_scope.pop();
+  }
+
+  if (measureBriefContentChars(unified) > maxChars) {
+    const excess = measureBriefContentChars(unified) - maxChars;
+    unified.objective = truncate(unified.objective, Math.max(0, unified.objective.length - excess));
+  }
+}
+
+function proportionallyTruncateBrief(unified: UnifiedBrief, maxChars: number): void {
+  const entries = collectTruncatableTextEntries(unified);
+
+  while (measureBriefContentChars(unified) > maxChars && entries.length > 0) {
+    const totalChars = entries.reduce((sum, entry) => sum + entry.get().length, 0);
+    if (totalChars === 0) {
+      break;
+    }
+
+    const excess = measureBriefContentChars(unified) - maxChars;
+    const largest = entries.reduce((current, candidate) =>
+      candidate.get().length > current.get().length ? candidate : current,
+    );
+    const value = largest.get();
+    const reduction = Math.min(
+      value.length,
+      Math.max(1, Math.ceil((value.length / totalChars) * excess)),
+    );
+    const nextValue = truncate(value, Math.max(0, value.length - reduction));
+    largest.set(nextValue);
+
+    if (nextValue.length === 0) {
+      const index = entries.indexOf(largest);
+      if (index >= 0) {
+        entries.splice(index, 1);
+      }
+    }
+  }
+}
+
+interface TruncatableTextEntry {
+  get: () => string;
+  set: (value: string) => void;
+}
+
+function collectTruncatableTextEntries(unified: UnifiedBrief): TruncatableTextEntry[] {
+  const entries: TruncatableTextEntry[] = [
+    {
+      get: () => unified.objective,
+      set: (value) => {
+        unified.objective = value;
+      },
+    },
+  ];
+
+  if (unified.soul_doctrine) {
+    entries.push({
+      get: () => unified.soul_doctrine ?? "",
+      set: (value) => {
+        if (value.length === 0) {
+          delete unified.soul_doctrine;
+        } else {
+          unified.soul_doctrine = value;
+        }
+      },
+    });
+  }
+
+  for (const [index, constraint] of unified.constraints.entries()) {
+    entries.push({
+      get: () => unified.constraints[index] ?? "",
+      set: (value) => {
+        if (value.length === 0) {
+          unified.constraints.splice(index, 1);
+        } else {
+          unified.constraints[index] = value;
+        }
+      },
+    });
+  }
+
+  for (const [index, file] of unified.files_in_scope.entries()) {
+    entries.push({
+      get: () => unified.files_in_scope[index] ?? "",
+      set: (value) => {
+        if (value.length === 0) {
+          unified.files_in_scope.splice(index, 1);
+        } else {
+          unified.files_in_scope[index] = value;
+        }
+      },
+    });
+  }
+
+  if (unified.resolved_context) {
+    for (const [index, item] of unified.resolved_context.entries()) {
+      entries.push({
+        get: () => unified.resolved_context?.[index]?.excerpt ?? "",
+        set: (value) => {
+          const entry = unified.resolved_context?.[index];
+          if (!entry) {
+            return;
+          }
+          if (value.length === 0) {
+            unified.resolved_context?.splice(index, 1);
+            if (unified.resolved_context?.length === 0) {
+              delete unified.resolved_context;
+            }
+          } else {
+            entry.excerpt = value;
+          }
+        },
+      });
+    }
+  }
+
+  if (unified.memory_context) {
+    for (const [index, slice] of unified.memory_context.entries()) {
+      entries.push({
+        get: () => unified.memory_context?.[index] ?? "",
+        set: (value) => {
+          if (value.length === 0) {
+            unified.memory_context?.splice(index, 1);
+            if (unified.memory_context?.length === 0) {
+              delete unified.memory_context;
+            }
+          } else {
+            unified.memory_context![index] = value;
+          }
+        },
+      });
+    }
+  }
+
+  if (unified.repair_hints) {
+    for (const [index, hint] of unified.repair_hints.entries()) {
+      entries.push({
+        get: () => unified.repair_hints?.[index] ?? "",
+        set: (value) => {
+          if (value.length === 0) {
+            unified.repair_hints?.splice(index, 1);
+            if (unified.repair_hints?.length === 0) {
+              delete unified.repair_hints;
+            }
+          } else {
+            unified.repair_hints![index] = value;
+          }
+        },
+      });
+    }
+  }
+
+  return entries.filter((entry) => entry.get().length > 0);
 }
 
 function truncate(text: string, maxChars: number): string {

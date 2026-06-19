@@ -17,6 +17,7 @@ const JanusConfigSchema = z.object({
       api_key_env: z.string().default("JANUS_MEMORY_API_KEY"),
       context_limit: z.number().int().positive().default(3),
       max_context_chars: z.number().int().positive().default(8000),
+      allow_query_llm_fallback: z.boolean().default(false),
     }),
     assets: z.object({
       root: z.string(),

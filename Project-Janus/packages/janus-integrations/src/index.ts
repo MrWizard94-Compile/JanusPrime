@@ -20,6 +20,8 @@ export {
 export {
   JanusUnifiedService,
   buildResolvedContext,
+  enforceBriefBudget,
+  measureBriefContentChars,
   selectCatalogContextRefs,
   type UnifiedBrief,
   type ResolvedContextExcerpt,

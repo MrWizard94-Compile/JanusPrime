@@ -133,7 +133,7 @@ Plan → Provision → Execute → Validate → [fail → Repair context → Ret
 
 1. Read this file (`doc:soul` / `janus://doctrine/soul`)
 2. Read `references/unified-architecture.md` (`arch:janus-unified`)
-3. Read `docs/phase0/handoff-protocol.md` (`doc:handoff-protocol`)
+3. Read `Project-Janus/docs/phase0/handoff-protocol.md` (`doc:handoff-protocol`) — path from workspace root
 4. Run `janus status` — verify memory + assets
 5. Run `janus doctrine seed` — bootstrap memory (once per environment)
 6. Use `janus brief -t <id>` — never raw `aether execute brief` when Janus is available
