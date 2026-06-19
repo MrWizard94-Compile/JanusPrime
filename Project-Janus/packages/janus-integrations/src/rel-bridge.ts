@@ -112,13 +112,18 @@ export class RelBridge {
       return { seeded: false, message: state.error ?? "REL unreachable" };
     }
 
-    const content = formatConceptSyncPayload({
-      stateSummary: state.data?.summary,
-      contextText: context.data?.context,
+    const payload: Parameters<typeof formatConceptSyncPayload>[0] = {
       analytics: analytics.data,
       query,
       maxChars,
-    });
+    };
+    if (state.data?.summary) {
+      payload.stateSummary = state.data.summary;
+    }
+    if (context.data?.context) {
+      payload.contextText = context.data.context;
+    }
+    const content = formatConceptSyncPayload(payload);
 
     if (!content.trim()) {
       return { seeded: false, message: "no concept content to seed" };
