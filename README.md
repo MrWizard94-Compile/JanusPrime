@@ -30,6 +30,10 @@ docker compose up -d
 cd Project-Janus
 node packages/cli/dist/bin.js janus doctrine seed
 node packages/cli/dist/bin.js janus status
+
+# Asset pipeline (sparse clone — mod sources are local-only, not in this repo)
+cd ..
+pnpm assets:setup
 ```
 
 ## CLI

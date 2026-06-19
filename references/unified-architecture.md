@@ -93,7 +93,7 @@ Root config: `janus.config.json`
 |-----|---------|
 | `components.orchestrator.root` | Path to Project-Janus |
 | `components.memory.url` | Smart-Library API base URL |
-| `components.assets.root` | Path to AssetConverter |
+| `components.assets.root` | Path to AssetConverter-sparse |
 | `self_repair.*` | Retry limits and seed policies |
 | `token_policy.*` | Brief and context size caps |
 
@@ -115,7 +115,7 @@ janus status
 | Profile | Layers | Use Case |
 |---------|--------|----------|
 | `neoforge-mixin-v1` | lsp, ast, rules, build | Java mixin workloads |
-| `typescript-v1` | rules, build | Janus monorepo packages |
+| `typescript-v1` | rules, build | JanusPrime workspace packages |
 | `asset-audit-v1` | rules, build | AssetConverter texture audit |
 | `python-sandbox-v1` | rules, build | Smart-Library heal verification |
 
@@ -128,7 +128,7 @@ JanusPrime/                     # Unified workspace root (repo: JanusPrime)
 ├── references/                 # Architecture + API docs
 ├── Project-Janus/              # Orchestrator monorepo (Aether)
 ├── Smart-Library/              # Memory + healing service
-├── AssetConverter/             # Omni32 asset engine
+├── AssetConverter-sparse/      # Omni32 asset engine
 ├── workloads/                  # Registered workloads
 │   ├── framedblocks/           # Code workload (in Project-Janus)
 │   └── omni32/                 # Asset workload manifest
@@ -163,7 +163,7 @@ The loop provisions children, executes identity/asset tasks through validation, 
 context or executor briefs for manual tasks, seeds accepted patterns to memory, and repeats
 until all children are accepted or max rounds exhausted.
 
-## MCP Resources (Janus extensions)
+## MCP Resources (JanusPrime extensions)
 
 When `JANUS_ROOT` is set (or auto-discovered), the MCP server exposes:
 
