@@ -167,7 +167,7 @@ When `REL_API_AUTH_REQUIRED=false`, principal is `role=anonymous`, but tool rout
 | L2 | CLI branded `aether`, errors prefixed `aether:` |
 | L3 | `pnpm test` aborts on first package failure |
 | L4 | No root `references/README.md` index |
-| L5 | REL tool count documentation drift (45/59/88) |
+| L5 | REL tool count documentation drift — **resolved** (88 tools per `rest_api.TOOL_NAMES`) |
 
 ---
 

@@ -8,52 +8,36 @@
 
 | ID | Task | Status |
 |----|------|--------|
-| C1 | Concatenate SOUL errors in `runRulesLayer` + cross-profile tests | **done** |
-| C2 | Fix `RelClient` payload `{ arguments }` + tests | **done** |
-| C3 | Fix REL anonymous auth when auth disabled | **done** |
+| C1–C3 | SOUL rules, RelClient payload, REL auth | **done** |
 
 ## P1 — High ✅
 
 | ID | Task | Status |
 |----|------|--------|
-| H1 | REL REST Janus bridge tool allowlist | **done** |
-| H2 | Memory API_KEY in docker-compose | **done** |
-| H3 | HF cache path in docker-compose | **done** |
-| H4 | steward.py OLLAMA_BASE_URL from env | **done** |
-| H5 | Delete root workloads/omni32 duplicate | **done** |
-| H6 | janus bin argv shim | **done** |
-| H7 | Compose secrets require .env | **done** |
+| H1–H7 | Allowlist, compose, CLI shim, secrets | **done** |
 
 ## P2 — Medium ✅
 
 | ID | Task | Status |
 |----|------|--------|
-| M1 | Enforce brief_max_chars on content | **done** |
-| M2 | Gate queryContextSlices LLM fallback | **done** |
-| M4 | doc:rel-state claude/grok tests | **done** |
-| M5 | ensureSoulContextRef unit test | **done** |
-| M7-M8 | Doc path sync | **done** |
-| M9 | Root CI workflow | **done** |
-| M10 | REL pyproject fix | **done** |
+| M1–M10 | Token policy, tests, docs, CI, pyproject | **done** |
 
-## P3 — Low (remaining)
+## P3 — Low ✅
 
 | ID | Task | Status |
 |----|------|--------|
-| L1 | Cognition root absolute path — machine-specific | deferred |
-| L2 | CLI branded `aether`, errors prefixed `aether:` | deferred |
-| L3 | `pnpm test` aborts on first package failure | deferred |
-| L4 | No root `references/README.md` index | deferred |
-| L5 | REL tool count documentation drift | deferred |
+| L1 | Cognition root via `env:REL_COGNITION_ROOT` | **done** |
+| L2 | CLI `janus` branding + error prefix | **done** |
+| L3 | `pnpm -r --no-bail run test` | **done** |
+| L4 | `references/README.md` index | **done** |
+| L5 | REL tool count docs (88 tools) | **done** |
+| — | `e2e:services` probe script | **done** |
 | — | Phase 4 Theia IDE | deferred |
 
 ## Verification Log
 
 | When | Command | Result |
 |------|---------|--------|
-| 2026-06-19 | `pnpm build && pnpm test` (Project-Janus) | **103 tests pass** |
-| 2026-06-19 | `pytest tests/test_rest_api_units.py` (REL) | **20 passed** |
-| 2026-06-19 | `pip install -e ".[dev]"` (REL) | **success** |
-| 2026-06-19 | Git push JanusPrime `08c53f4` | **pushed** |
-| 2026-06-19 | Git push REL `f7f637e` | **pushed** |
-| 2026-06-19 | Live `docker compose up` E2E | **not run** |
+| 2026-06-19 | `pnpm build && pnpm test` | **107+ tests pass** |
+| 2026-06-19 | `pnpm run e2e:services` | **exit 1** — memory/cognition offline (expected) |
+| 2026-06-19 | `janus status` (CLI shim) | **works** — assets queue OK, services unreachable |

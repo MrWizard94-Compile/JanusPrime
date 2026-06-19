@@ -13,14 +13,22 @@ const JANUS_SUBCOMMANDS = new Set([
   "assets",
 ]);
 
-export function normalizeArgv(argv: string[]): string[] {
+export function getCliName(argv: string[]): "janus" | "aether" {
   const invokedAs = path.basename(argv[1] ?? "").toLowerCase();
   if (invokedAs === "janus" || invokedAs === "janus.cmd") {
-    return [...argv.slice(0, 2), "janus", ...argv.slice(2)];
+    return "janus";
   }
 
   const firstCmd = argv[2];
   if (firstCmd && firstCmd !== "janus" && JANUS_SUBCOMMANDS.has(firstCmd)) {
+    return "janus";
+  }
+
+  return "aether";
+}
+
+export function normalizeArgv(argv: string[]): string[] {
+  if (getCliName(argv) === "janus") {
     return [...argv.slice(0, 2), "janus", ...argv.slice(2)];
   }
 

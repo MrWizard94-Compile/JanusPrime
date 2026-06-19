@@ -30,13 +30,20 @@ interface TaskCreateFile {
   };
 }
 
-export function buildProgram(): Command {
+export function buildProgram(cliName: "janus" | "aether" = "aether"): Command {
   const program = new Command();
 
-  program
-    .name("aether")
-    .description("Aether CLI — task queue, validation gate, worktrees, and Phase 1 orchestration")
-    .version("0.4.0");
+  if (cliName === "janus") {
+    program
+      .name("janus")
+      .description("JanusPrime CLI — unified autonomous development and asset generation")
+      .version("0.4.0");
+  } else {
+    program
+      .name("aether")
+      .description("Aether CLI — task queue, validation gate, worktrees, and Phase 1 orchestration")
+      .version("0.4.0");
+  }
 
   const task = program.command("task").description("Manage structured tasks");
 

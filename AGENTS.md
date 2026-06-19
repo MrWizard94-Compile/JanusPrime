@@ -9,8 +9,9 @@ All agents operating in this workspace **must** load doctrine from **[SOUL.md](S
 1. Read `SOUL.md` — invariants, token policy, validation doctrine
 2. Read `references/unified-architecture.md` — component map and flows
 3. Read `Project-Janus/docs/phase0/handoff-protocol.md` — validation gate (`doc:handoff-protocol`)
-4. Run `janus status` from `Project-Janus/` after build
-5. Run `janus doctrine seed` once per environment (memory bootstrap)
+4. Copy `.env.example` → `.env` and set `REL_COGNITION_ROOT` (or `REL_BUILD_CONTEXT`) for cognition paths
+5. Run `janus status` from `Project-Janus/` after build
+6. Run `janus doctrine seed` once per environment (memory bootstrap)
 
 ## Commands (prefer Janus over raw Aether)
 

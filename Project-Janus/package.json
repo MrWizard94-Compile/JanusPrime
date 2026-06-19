@@ -15,14 +15,15 @@
   "scripts": {
     "build": "pnpm -r run build",
     "dev": "pnpm --filter @aether/cli run dev",
-    "test": "pnpm -r run test",
+    "test": "pnpm -r --no-bail run test",
     "lint": "pnpm -r run lint",
     "typecheck": "pnpm -r run typecheck",
     "aether": "pnpm --filter @aether/cli exec aether",
     "e2e:typescript": "node scripts/e2e-typescript.mjs",
     "e2e:framedblocks": "node scripts/e2e-framedblocks.mjs",
     "e2e:framedblocks-batch01": "node scripts/e2e-framedblocks-batch01.mjs",
-    "e2e:orchestration": "node scripts/e2e-orchestration.mjs"
+    "e2e:orchestration": "node scripts/e2e-orchestration.mjs",
+    "e2e:services": "node scripts/e2e-services-probe.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.15.21",

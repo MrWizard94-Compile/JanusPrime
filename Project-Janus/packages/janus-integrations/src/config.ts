@@ -118,6 +118,28 @@ export async function loadJanusConfig(startDir: string): Promise<{
   return { root, config };
 }
 
+const ENV_PATH_PREFIX = "env:";
+
+export function expandConfigPath(janusRoot: string, pathValue: string): string {
+  let expanded = pathValue;
+  if (pathValue.startsWith(ENV_PATH_PREFIX)) {
+    const varName = pathValue.slice(ENV_PATH_PREFIX.length);
+    if (!varName) {
+      throw new Error(`Invalid env path reference: ${pathValue}`);
+    }
+    const envValue =
+      process.env[varName] ??
+      (varName === "REL_COGNITION_ROOT" ? process.env.REL_BUILD_CONTEXT : undefined);
+    if (envValue === undefined || envValue === "") {
+      throw new Error(
+        `Environment variable ${varName} is not set (required by config path ${pathValue})`,
+      );
+    }
+    expanded = envValue;
+  }
+  return resolve(janusRoot, expanded);
+}
+
 export function resolveComponentPath(janusRoot: string, relativePath: string): string {
   return resolve(janusRoot, relativePath);
 }
@@ -139,5 +161,5 @@ export function resolveCognitionRoot(janusRoot: string, config: JanusConfig): st
   if (!cognition) {
     return undefined;
   }
-  return resolveComponentPath(janusRoot, cognition.root);
+  return expandConfigPath(janusRoot, cognition.root);
 }
