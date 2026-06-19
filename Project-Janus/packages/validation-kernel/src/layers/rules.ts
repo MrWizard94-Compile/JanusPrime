@@ -19,11 +19,13 @@ export function runRulesLayer(
   let errors: ValidationError[] = runSoulEngineeringRules(context.proposal);
 
   if (profile.id === "neoforge-mixin-v1") {
-    errors = runNeoForgeMixinRules({ proposal: context.proposal, spec: context.spec });
+    errors = errors.concat(
+      runNeoForgeMixinRules({ proposal: context.proposal, spec: context.spec }),
+    );
   } else if (profile.id === "typescript-v1") {
-    errors = runTypeScriptRules(context.proposal, context.spec);
+    errors = errors.concat(runTypeScriptRules(context.proposal, context.spec));
   } else if (profile.id === "asset-audit-v1") {
-    errors = runAssetAuditRules(context.spec, context.context_refs ?? []);
+    errors = errors.concat(runAssetAuditRules(context.spec, context.context_refs ?? []));
   }
 
   return {

@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "bin": {
-    "aether": "./dist/bin.js"
+    "aether": "./dist/bin.js",
+    "janus": "./dist/bin.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

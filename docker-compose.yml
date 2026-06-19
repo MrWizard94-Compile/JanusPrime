@@ -1,5 +1,5 @@
 # JanusPrime service stack — memory + cognition + local LLM
-# Usage: copy .env.example to .env, then: docker compose up -d
+# REQUIRED: copy .env.example to .env before `docker compose up` (secrets and paths are not inlined).
 
 services:
   ollama:
@@ -16,6 +16,7 @@ services:
       context: ./Smart-Library
       dockerfile: Dockerfile
     container_name: janusprime-memory
+    env_file: .env
     ports:
       - "8000:8000"
     environment:
@@ -23,9 +24,11 @@ services:
       - OLLAMA_MODEL=qwen2.5-coder:7b
       - USE_DOCKER_SANDBOX=true
       - SANDBOX_FAIL_CLOSED=true
+      # Smart-Library reads API_KEY; Janus orchestrator uses JANUS_MEMORY_API_KEY (same value).
+      - API_KEY=${JANUS_MEMORY_API_KEY:-${API_KEY:-}}
     volumes:
       - ./Smart-Library/.chroma_db:/app/.chroma_db
-      - ./Smart-Library/.hf_cache:/app/.hf_cache
+      - ./Smart-Library/.hf_cache:/root/.cache/huggingface
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - ollama
@@ -36,6 +39,7 @@ services:
       context: ${REL_BUILD_CONTEXT:-C:/REL_Codex_Variant}
       dockerfile: Dockerfile
     container_name: janusprime-cognition
+    env_file: .env
     ports:
       - "8080:8080"
     environment:
@@ -44,8 +48,8 @@ services:
       - REL_LOG_LEVEL=INFO
       - REL_API_AUTH_REQUIRED=${REL_API_AUTH_REQUIRED:-false}
       - REL_ADMIN_USERNAME=${REL_ADMIN_USERNAME:-admin}
-      - REL_ADMIN_PASSWORD=${REL_ADMIN_PASSWORD:-janusprime-local}
-      - REL_OAUTH2_SECRET=${REL_OAUTH2_SECRET:-janusprime-local-oauth2-secret-change-me}
+      - REL_ADMIN_PASSWORD=${REL_ADMIN_PASSWORD:?REL_ADMIN_PASSWORD is required — copy .env.example to .env}
+      - REL_OAUTH2_SECRET=${REL_OAUTH2_SECRET:?REL_OAUTH2_SECRET is required — copy .env.example to .env}
       - OLLAMA_BASE_URL=http://ollama:11434
     volumes:
       - ${REL_DATA_PATH:-C:/REL_Codex_Variant/data}:/app/runtime/data

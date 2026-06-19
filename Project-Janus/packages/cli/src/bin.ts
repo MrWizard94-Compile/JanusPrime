@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
+import { normalizeArgv } from "./argv.js";
 import { buildProgram } from "./program.js";
 
 async function main(): Promise<void> {
   const program = buildProgram();
-  await program.parseAsync(process.argv);
+  await program.parseAsync(normalizeArgv(process.argv));
 }
 
 main().catch((error: unknown) => {

@@ -73,8 +73,10 @@ describe("RelClient", () => {
           Authorization: "Bearer test-bearer",
         },
         body: JSON.stringify({
-          summary: "loop complete",
-          achievements: ["seeded:task-1"],
+          arguments: {
+            summary: "loop complete",
+            achievements: ["seeded:task-1"],
+          },
         }),
       }),
     );

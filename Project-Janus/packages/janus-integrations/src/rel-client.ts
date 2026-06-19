@@ -55,7 +55,7 @@ export class RelClient {
       const response = await fetch(`${this.baseUrl}/api/v1/tools/${encodeURIComponent(name)}`, {
         method: "POST",
         headers: this.authHeaders(),
-        body: JSON.stringify(args),
+        body: JSON.stringify({ arguments: args }),
       });
 
       if (!response.ok) {
