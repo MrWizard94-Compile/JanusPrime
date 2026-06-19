@@ -1,0 +1,8 @@
+{
+  "id": "omni32",
+  "description": "Omni32 Minecraft 1.20.1 Forge texture upscaling resource pack",
+  "repository": null,
+  "branch": "main",
+  "validation_profile": "asset-audit-v1",
+  "clone_path": "."
+}

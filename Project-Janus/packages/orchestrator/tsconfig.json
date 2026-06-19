@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts"],
+  "references": [
+    { "path": "../context" },
+    { "path": "../shared" },
+    { "path": "../task-queue" },
+    { "path": "../validation-kernel" },
+    { "path": "../workload-manager" },
+    { "path": "../worktree-manager" }
+  ]
+}

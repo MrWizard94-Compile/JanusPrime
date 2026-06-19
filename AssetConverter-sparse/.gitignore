@@ -1,0 +1,31 @@
+# Local-only cache (not committed)
+local/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+agent-tools/
+
+# Legacy root clutter (should not return)
+tools/
+terminals/
+_tmp*/
+*.dll
+*.exe
+*.zip
+*.mp4
+*.jpg
+
+# Nested clone metadata (sources are plain trees, not submodules)
+sources/**/.git/
+
+# Track: sources/, output/, pipeline/, config/, data/, docs/

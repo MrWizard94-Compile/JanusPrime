@@ -1,0 +1,61 @@
+{
+  "parent": {
+    "workload": null,
+    "validation_profile": "typescript-v1",
+    "context_refs": ["doc:soul", "arch:janus-unified", "doc:handoff-protocol"],
+    "spec": {
+      "objective": "Deliver a feature spanning code changes and asset pipeline updates",
+      "constraints": [
+        "All code mutations pass validation kernel before disk write",
+        "Asset changes must pass asset-audit-v1",
+        "Use janus brief for token-efficient executor context"
+      ],
+      "files_in_scope": [],
+      "acceptance_criteria": [
+        "All child tasks reach accepted status",
+        "Accepted patterns seeded to memory via janus seed"
+      ]
+    }
+  },
+  "children": [
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "framedblocks",
+        "validation_profile": "neoforge-mixin-v1",
+        "context_refs": ["doc:soul", "arch:framedblocks-mixin-pattern"],
+        "spec": {
+          "objective": "Implement mixin changes in FramedBlocks workload",
+          "constraints": ["Follow neoforge-mixin domain rules M001-M006"],
+          "files_in_scope": [],
+          "acceptance_criteria": ["Gradle compileJava passes", "LSP clean"]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "omni32",
+        "validation_profile": "asset-audit-v1",
+        "context_refs": [
+          "doc:soul",
+          "arch:janus-unified",
+          "asset:mod:create",
+          "asset:action:audit"
+        ],
+        "spec": {
+          "objective": "Audit Omni32 mod textures before upscale",
+          "constraints": ["mod_id:create"],
+          "files_in_scope": [],
+          "acceptance_criteria": ["Textures upscaled and committed to output/assets"]
+        }
+      }
+    }
+  ],
+  "provision": {
+    "auto_worktree": true,
+    "auto_prepare": false
+  }
+}

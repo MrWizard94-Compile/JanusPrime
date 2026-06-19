@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*"],
+  "references": [
+    { "path": "../context" },
+    { "path": "../janus-integrations" },
+    { "path": "../shared" },
+    { "path": "../task-queue" },
+    { "path": "../worktree-manager" }
+  ]
+}

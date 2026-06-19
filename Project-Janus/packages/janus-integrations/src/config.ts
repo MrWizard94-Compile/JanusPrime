@@ -1,0 +1,121 @@
+import { readFile } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
+import { z } from "zod";
+
+const JanusConfigSchema = z.object({
+  version: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+  components: z.object({
+    orchestrator: z.object({
+      root: z.string(),
+      state_dir: z.string().default(".aether"),
+    }),
+    memory: z.object({
+      root: z.string(),
+      url: z.string().url(),
+      api_key_env: z.string().default("JANUS_MEMORY_API_KEY"),
+      context_limit: z.number().int().positive().default(3),
+      max_context_chars: z.number().int().positive().default(8000),
+    }),
+    assets: z.object({
+      root: z.string(),
+      entry: z.string().default("ac.py"),
+      python: z.string().default("python"),
+    }),
+  }),
+  self_repair: z
+    .object({
+      max_validation_retries: z.number().int().positive().default(5),
+      max_heal_attempts: z.number().int().positive().default(3),
+      seed_on_accept: z.boolean().default(true),
+      seed_on_heal: z.boolean().default(true),
+    })
+    .default({
+      max_validation_retries: 5,
+      max_heal_attempts: 3,
+      seed_on_accept: true,
+      seed_on_heal: true,
+    }),
+  token_policy: z
+    .object({
+      brief_max_chars: z.number().int().positive().default(12000),
+      memory_slice_max_chars: z.number().int().positive().default(2000),
+      resolved_context_max_chars: z.number().int().positive().default(3000),
+      validation_error_max: z.number().int().positive().default(20),
+    })
+    .default({
+      brief_max_chars: 12000,
+      memory_slice_max_chars: 2000,
+      resolved_context_max_chars: 3000,
+      validation_error_max: 20,
+    }),
+  doctrine: z
+    .object({
+      soul_path: z.string().default("SOUL.md"),
+      inject_into_brief: z.boolean().default(true),
+      inject_into_mcp_instructions: z.boolean().default(true),
+      seed_on_boot: z.boolean().default(false),
+      brief_excerpt_max_chars: z.number().int().positive().default(4000),
+      mcp_instruction_excerpt_max_chars: z.number().int().positive().default(1500),
+    })
+    .default({
+      soul_path: "SOUL.md",
+      inject_into_brief: true,
+      inject_into_mcp_instructions: true,
+      seed_on_boot: false,
+      brief_excerpt_max_chars: 4000,
+      mcp_instruction_excerpt_max_chars: 1500,
+    }),
+});
+
+export type JanusConfig = z.infer<typeof JanusConfigSchema>;
+
+const CONFIG_FILENAME = "janus.config.json";
+
+export async function findJanusRoot(startDir: string): Promise<string> {
+  let current = resolve(startDir);
+
+  for (let depth = 0; depth < 32; depth += 1) {
+    try {
+      await readFile(join(current, CONFIG_FILENAME), "utf8");
+      return current;
+    } catch {
+      const parent = dirname(current);
+      if (parent === current) {
+        break;
+      }
+      current = parent;
+    }
+  }
+
+  throw new Error(
+    `Could not find ${CONFIG_FILENAME} walking up from ${startDir}. Run janus from the unified workspace root.`,
+  );
+}
+
+export async function loadJanusConfig(startDir: string): Promise<{
+  root: string;
+  config: JanusConfig;
+}> {
+  const root = await findJanusRoot(startDir);
+  const raw = await readFile(join(root, CONFIG_FILENAME), "utf8");
+  const config = JanusConfigSchema.parse(JSON.parse(raw));
+  return { root, config };
+}
+
+export function resolveComponentPath(janusRoot: string, relativePath: string): string {
+  return resolve(janusRoot, relativePath);
+}
+
+export function resolveOrchestratorRoot(janusRoot: string, config: JanusConfig): string {
+  return resolveComponentPath(janusRoot, config.components.orchestrator.root);
+}
+
+export function resolveMemoryRoot(janusRoot: string, config: JanusConfig): string {
+  return resolveComponentPath(janusRoot, config.components.memory.root);
+}
+
+export function resolveAssetRoot(janusRoot: string, config: JanusConfig): string {
+  return resolveComponentPath(janusRoot, config.components.assets.root);
+}

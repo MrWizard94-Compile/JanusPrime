@@ -1,0 +1,19 @@
+# Binary assets — no textual diff/merge
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.gif  binary
+*.tga  binary
+*.bmp  binary
+*.psd  binary
+*.ico  binary
+
+# Normalize text
+*.py   text eol=lf
+*.md   text eol=lf
+*.json text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.sh   text eol=lf

@@ -1,0 +1,10 @@
+export { ValidationKernel } from "./kernel.js";
+export type { ValidateOptions, ValidateTaskOptions } from "./kernel.js";
+export { HandoffService } from "./handoff.js";
+export type { SubmitPatchOptions, SubmitPatchResult } from "./handoff.js";
+export { applyPatch, revertWorkspace } from "./patch.js";
+export { readReceipt, writeReceipt, receiptMatchesProposal } from "./receipt.js";
+export type { ValidationResult, LayerResult } from "./types.js";
+export { parseAssetModId } from "./rules/asset-task.js";
+export { parseAssetAction } from "./rules/asset-audit.js";
+export { runSoulEngineeringRules } from "./rules/soul-engineering.js";

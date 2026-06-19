@@ -1,0 +1,32 @@
+{
+  "name": "@janus/integrations",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@aether/context": "workspace:*",
+    "@aether/orchestrator": "workspace:*",
+    "@aether/shared": "workspace:*",
+    "@aether/task-queue": "workspace:*",
+    "@aether/validation-kernel": "workspace:*",
+    "@aether/workload-manager": "workspace:*",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.1"
+  }
+}

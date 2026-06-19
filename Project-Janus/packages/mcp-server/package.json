@@ -1,0 +1,30 @@
+{
+  "name": "@aether/mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "aether-mcp": "./dist/bin.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "node --import tsx src/bin.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@janus/integrations": "workspace:*",
+    "@aether/context": "workspace:*",
+    "@aether/shared": "workspace:*",
+    "@aether/task-queue": "workspace:*",
+    "@aether/worktree-manager": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.25.42"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.4"
+  }
+}

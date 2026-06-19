@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*"],
+  "references": [
+    { "path": "../context" },
+    { "path": "../orchestrator" },
+    { "path": "../orchestrator" },
+    { "path": "../shared" },
+    { "path": "../task-queue" },
+    { "path": "../validation-kernel" },
+    { "path": "../workload-manager" },
+    { "path": "../worktree-manager" }
+  ]
+}

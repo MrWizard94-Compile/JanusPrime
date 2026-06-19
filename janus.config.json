@@ -1,0 +1,43 @@
+{
+  "version": "1.0.0",
+  "name": "janusprime",
+  "description": "JanusPrime — unified autonomous development and asset generation system",
+  "components": {
+    "orchestrator": {
+      "root": "Project-Janus",
+      "state_dir": ".aether"
+    },
+    "memory": {
+      "root": "Smart-Library",
+      "url": "http://localhost:8000",
+      "api_key_env": "JANUS_MEMORY_API_KEY",
+      "context_limit": 3,
+      "max_context_chars": 8000
+    },
+    "assets": {
+      "root": "AssetConverter-sparse",
+      "entry": "ac.py",
+      "python": "python"
+    }
+  },
+  "self_repair": {
+    "max_validation_retries": 5,
+    "max_heal_attempts": 3,
+    "seed_on_accept": true,
+    "seed_on_heal": true
+  },
+  "token_policy": {
+    "brief_max_chars": 12000,
+    "memory_slice_max_chars": 2000,
+    "resolved_context_max_chars": 3000,
+    "validation_error_max": 20
+  },
+  "doctrine": {
+    "soul_path": "SOUL.md",
+    "inject_into_brief": true,
+    "inject_into_mcp_instructions": true,
+    "seed_on_boot": false,
+    "brief_excerpt_max_chars": 4000,
+    "mcp_instruction_excerpt_max_chars": 1500
+  }
+}
