@@ -15,6 +15,7 @@ JanusPrime is a fully autonomous, self-repairing, evolving end-to-end developmen
 | **Orchestrator Core** | Project-Janus (Aether) | Dual-AI task delegation, validation kernel, git worktrees |
 | **Memory & Healing** | Smart-Library | Semantic retrieval, sandboxed execution, self-healing write-back |
 | **Asset Engine** | AssetConverter (Omni32) | Texture pull → upscale → build pipeline |
+| **Cognition (optional)** | REL Codex Variant | Session logging, neural learn, context load via REST bridge |
 
 ## Unified Architecture
 
@@ -24,15 +25,15 @@ JanusPrime is a fully autonomous, self-repairing, evolving end-to-end developmen
 │  Plans → Delegates → Reviews rollups → Owns large context       │
 └────────────────────────────┬────────────────────────────────────┘
                              │
-         ┌───────────────────┼───────────────────┐
-         ▼                   ▼                   ▼
-┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-│ Executor (Grok) │ │ Memory Service  │ │ Asset Engine    │
-│ Minimal briefs  │ │ Smart-Library   │ │ AssetConverter  │
-│ Validation gate │ │ /query /heal    │ │ ac.py pipeline  │
-└────────┬────────┘ └────────┬────────┘ └────────┬────────┘
-         │                     │                   │
-         └─────────────────────┼───────────────────┘
+         ┌───────────────────┼───────────────────┬───────────────────┐
+         ▼                   ▼                   ▼                   ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│ Executor (Grok) │ │ Memory Service  │ │ Asset Engine    │ │ Cognition (opt) │
+│ Minimal briefs  │ │ Smart-Library   │ │ AssetConverter  │ │ REL REST bridge │
+│ Validation gate │ │ /query /heal    │ │ ac.py pipeline  │ │ log_session     │
+└────────┬────────┘ └────────┬────────┘ └────────┬────────┘ └────────┬────────┘
+         │                     │                   │                   │
+         └─────────────────────┼───────────────────┴───────────────────┘
                                ▼
                     ┌─────────────────────┐
                     │ Validation Kernel   │
@@ -94,6 +95,7 @@ Root config: `janus.config.json`
 | `components.orchestrator.root` | Path to Project-Janus |
 | `components.memory.url` | Smart-Library API base URL |
 | `components.assets.root` | Path to AssetConverter-sparse |
+| `components.cognition.*` | Optional REL REST bridge (`rest_url`, auth env vars, loop logging) |
 | `self_repair.*` | Retry limits and seed policies |
 | `token_policy.*` | Brief and context size caps |
 
@@ -174,8 +176,11 @@ When `JANUS_ROOT` is set (or auto-discovered), the MCP server exposes:
 | Asset queue | `janus://assets/queue` |
 | Task brief | `janus://task/<id>/brief` |
 | Repair context | `janus://task/<id>/repair` |
+| REL state summary | `janus://rel/state-summary` (when cognition configured) |
 
 Tools: `janus-memory-query`, `janus-repair-context`
+
+CLI: `janus rel status`, `janus rel context -q <query>`
 
 ## Asset Workload Markers
 

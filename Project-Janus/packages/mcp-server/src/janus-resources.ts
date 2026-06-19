@@ -6,6 +6,7 @@ import {
   loadSoul,
   MemoryClient,
   AssetRunner,
+  RelBridge,
   type JanusConfig,
 } from "@janus/integrations";
 
@@ -22,6 +23,7 @@ export function registerJanusMcpResources(
   const unified = new JanusUnifiedService(context.janusRoot, context.config);
   const memory = new MemoryClient(context.config.components.memory);
   const assets = new AssetRunner(context.janusRoot, context.config);
+  const relBridge = new RelBridge(context.janusRoot, context.config);
 
   server.registerResource(
     "janus-doctrine-soul",
@@ -110,6 +112,30 @@ export function registerJanusMcpResources(
       };
     },
   );
+
+  if (context.config.components.cognition) {
+    server.registerResource(
+      "janus-rel-state-summary",
+      "janus://rel/state-summary",
+      {
+        title: "REL cognition state summary",
+        description: "Current REL cognitive state when cognition bridge is configured",
+        mimeType: "application/json",
+      },
+      async () => {
+        const status = await relBridge.getStatus();
+        return {
+          contents: [
+            {
+              uri: "janus://rel/state-summary",
+              mimeType: "application/json",
+              text: JSON.stringify(status, null, 2),
+            },
+          ],
+        };
+      },
+    );
+  }
 
   server.registerResource(
     "janus-task-brief",

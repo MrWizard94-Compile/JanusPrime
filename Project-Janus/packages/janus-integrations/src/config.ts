@@ -23,6 +23,15 @@ const JanusConfigSchema = z.object({
       entry: z.string().default("ac.py"),
       python: z.string().default("python"),
     }),
+    cognition: z
+      .object({
+        root: z.string(),
+        rest_url: z.string().url(),
+        api_key_env: z.string().default("JANUS_REL_API_KEY"),
+        bearer_token_env: z.string().default("JANUS_REL_BEARER_TOKEN"),
+        log_loop_outcomes: z.boolean().default(true),
+      })
+      .optional(),
   }),
   self_repair: z
     .object({
@@ -118,4 +127,12 @@ export function resolveMemoryRoot(janusRoot: string, config: JanusConfig): strin
 
 export function resolveAssetRoot(janusRoot: string, config: JanusConfig): string {
   return resolveComponentPath(janusRoot, config.components.assets.root);
+}
+
+export function resolveCognitionRoot(janusRoot: string, config: JanusConfig): string | undefined {
+  const cognition = config.components.cognition;
+  if (!cognition) {
+    return undefined;
+  }
+  return resolveComponentPath(janusRoot, cognition.root);
 }

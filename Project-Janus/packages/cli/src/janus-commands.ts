@@ -6,6 +6,7 @@ import {
   loadJanusConfig,
   MemoryClient,
   AssetRunner,
+  RelBridge,
 } from "@janus/integrations";
 
 async function loadJanusService(cwd: string): Promise<JanusUnifiedService> {
@@ -167,6 +168,49 @@ export function registerJanusCommands(program: Command): void {
       if (report.status === "Failed") {
         process.exitCode = 1;
       }
+    });
+
+  const rel = janus.command("rel").description("REL cognition bridge");
+
+  rel
+    .command("status")
+    .description("Show REL cognition service status and state summary")
+    .action(async () => {
+      const { root, config } = await loadJanusConfig(process.cwd());
+      const bridge = new RelBridge(root, config);
+      const status = await bridge.getStatus();
+      console.log(JSON.stringify(status, null, 2));
+
+      if (status.configured && !status.reachable) {
+        process.exitCode = 1;
+      }
+    });
+
+  rel
+    .command("context")
+    .description("Load cognition context from REL for a query")
+    .requiredOption("-q, --query <text>", "Query text")
+    .option("--max-tokens <n>", "Maximum context tokens", "4000")
+    .action(async (options: { query: string; maxTokens: string }) => {
+      const { root, config } = await loadJanusConfig(process.cwd());
+      const bridge = new RelBridge(root, config);
+
+      if (!bridge.isConfigured()) {
+        throw new Error("components.cognition is not configured in janus.config.json");
+      }
+
+      const context = await bridge.loadContext(
+        options.query,
+        Number.parseInt(options.maxTokens, 10),
+      );
+
+      if (!context) {
+        process.exitCode = 1;
+        console.log(JSON.stringify({ reachable: false, query: options.query }, null, 2));
+        return;
+      }
+
+      console.log(JSON.stringify(context, null, 2));
     });
 
   const assets = janus.command("assets").description("AssetConverter Omni32 pipeline");

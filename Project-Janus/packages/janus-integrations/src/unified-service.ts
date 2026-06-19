@@ -7,6 +7,7 @@ import type { JanusConfig } from "./config.js";
 import { resolveOrchestratorRoot } from "./config.js";
 import { AssetRunner } from "./asset-runner.js";
 import { MemoryClient } from "./memory-client.js";
+import { RelBridge } from "./rel-bridge.js";
 import { excerptSoul, hashSoul, loadSoul } from "./soul.js";
 
 export interface ResolvedContextExcerpt {
@@ -27,6 +28,12 @@ export interface SystemStatus {
   janus_root: string;
   orchestrator_root: string;
   memory: { status: string; detail?: string };
+  cognition?: {
+    configured: boolean;
+    reachable: boolean;
+    status?: string;
+    detail?: string;
+  };
   assets: { queue_available: boolean };
   tasks: { total: number; by_status: Record<string, number> };
 }
@@ -57,6 +64,7 @@ export class JanusUnifiedService {
   private readonly assets: AssetRunner;
   private readonly orchestrator: OrchestratorService;
   private readonly queue: TaskQueue;
+  private readonly relBridge: RelBridge;
   private soulCache: string | null = null;
 
   constructor(janusRoot: string, config: JanusConfig) {
@@ -67,6 +75,7 @@ export class JanusUnifiedService {
     this.assets = new AssetRunner(janusRoot, config);
     this.orchestrator = new OrchestratorService(this.orchestratorRoot);
     this.queue = new TaskQueue(this.orchestratorRoot);
+    this.relBridge = new RelBridge(janusRoot, config);
   }
 
   async getSoulExcerpt(): Promise<string | undefined> {
@@ -325,13 +334,31 @@ export class JanusUnifiedService {
       queueAvailable = false;
     }
 
-    return {
+    const status: SystemStatus = {
       janus_root: this.janusRoot,
       orchestrator_root: this.orchestratorRoot,
       memory: memoryStatus,
       assets: { queue_available: queueAvailable },
       tasks: { total: tasks.length, by_status },
     };
+
+    if (this.config.components.cognition) {
+      const cognition = await this.relBridge.getStatus();
+      const cognitionStatus: NonNullable<SystemStatus["cognition"]> = {
+        configured: cognition.configured,
+        reachable: cognition.reachable,
+      };
+      if (cognition.health?.status) {
+        cognitionStatus.status = cognition.health.status;
+      }
+      const detail = cognition.detail ?? cognition.state_summary?.summary;
+      if (detail) {
+        cognitionStatus.detail = detail;
+      }
+      status.cognition = cognitionStatus;
+    }
+
+    return status;
   }
 }
 

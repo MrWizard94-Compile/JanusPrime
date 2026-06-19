@@ -4,6 +4,7 @@ import type { JanusConfig } from "./config.js";
 import { resolveOrchestratorRoot } from "./config.js";
 import { AssetTaskExecutor, type AssetTaskResult } from "./asset-task-executor.js";
 import { ManualPatchExecutor } from "./manual-patch-executor.js";
+import { RelBridge } from "./rel-bridge.js";
 import { JanusUnifiedService } from "./unified-service.js";
 
 export interface LoopRoundResult {
@@ -35,6 +36,7 @@ export class JanusAutonomousLoop {
   private readonly unified: JanusUnifiedService;
   private readonly assets: AssetTaskExecutor;
   private readonly manual: ManualPatchExecutor;
+  private readonly relBridge: RelBridge;
 
   constructor(janusRoot: string, config: JanusConfig) {
     this.config = config;
@@ -43,6 +45,7 @@ export class JanusAutonomousLoop {
     this.unified = new JanusUnifiedService(janusRoot, config);
     this.assets = new AssetTaskExecutor(janusRoot, config);
     this.manual = new ManualPatchExecutor(janusRoot, config);
+    this.relBridge = new RelBridge(janusRoot, config);
   }
 
   async run(parentId: string, options?: AutonomousLoopOptions): Promise<AutonomousLoopResult> {
@@ -97,26 +100,37 @@ export class JanusAutonomousLoop {
 
       const rollup = await this.orchestrator.rollupStatus(parentId);
       if (rollup.complete) {
-        return {
+        return this.finishLoop({
           parent_id: parentId,
           rounds_executed: roundsExecuted,
           complete: true,
           rollup,
           round_results: roundResults,
           seeded_tasks: seededTasks,
-        };
+        });
       }
     }
 
     const finalRollup = await this.orchestrator.rollupStatus(parentId);
-    return {
+    return this.finishLoop({
       parent_id: parentId,
       rounds_executed: roundsExecuted,
       complete: finalRollup.complete,
       rollup: finalRollup,
       round_results: roundResults,
       seeded_tasks: seededTasks,
-    };
+    });
+  }
+
+  private async finishLoop(result: AutonomousLoopResult): Promise<AutonomousLoopResult> {
+    if (this.config.components.cognition?.log_loop_outcomes) {
+      try {
+        await this.relBridge.logAutonomousLoopOutcome(result);
+      } catch {
+        // REL cognition offline — non-fatal
+      }
+    }
+    return result;
   }
 
   private async executeChild(

@@ -4,6 +4,7 @@ export {
   findJanusRoot,
   loadJanusConfig,
   resolveAssetRoot,
+  resolveCognitionRoot,
   resolveMemoryRoot,
   resolveOrchestratorRoot,
   type JanusConfig,
@@ -37,3 +38,18 @@ export {
   type LoopRoundResult,
 } from "./autonomous-loop.js";
 export { AssetTaskExecutor, type AssetTaskResult } from "./asset-task-executor.js";
+export {
+  RelClient,
+  type CognitionConfig,
+  type RelResult,
+  type RelHealth,
+  type RelStateSummary,
+  type RelSessionInput,
+  type RelContextResult,
+} from "./rel-client.js";
+export {
+  RelBridge,
+  formatLoopSummary,
+  collectLoopAchievements,
+  type CognitionStatus,
+} from "./rel-bridge.js";

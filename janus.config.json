@@ -18,6 +18,13 @@
       "root": "AssetConverter-sparse",
       "entry": "ac.py",
       "python": "python"
+    },
+    "cognition": {
+      "root": "C:/REL_Codex_Variant",
+      "rest_url": "http://localhost:8080",
+      "api_key_env": "JANUS_REL_API_KEY",
+      "bearer_token_env": "JANUS_REL_BEARER_TOKEN",
+      "log_loop_outcomes": true
     }
   },
   "self_repair": {
