@@ -187,6 +187,20 @@ export function registerJanusCommands(program: Command): void {
     });
 
   rel
+    .command("sync")
+    .description("Sync REL steward/neural-web concepts into Smart-Library memory")
+    .option("-q, --query <text>", "Concept retrieval query")
+    .action(async (options: { query?: string }) => {
+      const service = await loadJanusService(process.cwd());
+      const result = await service.syncRelConceptsToMemory(options.query);
+      console.log(JSON.stringify(result, null, 2));
+
+      if (!result.seeded) {
+        process.exitCode = 1;
+      }
+    });
+
+  rel
     .command("context")
     .description("Load cognition context from REL for a query")
     .requiredOption("-q, --query <text>", "Query text")

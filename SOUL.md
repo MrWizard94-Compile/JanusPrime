@@ -149,7 +149,10 @@ Plan → Provision → Execute → Validate → [fail → Repair context → Ret
 * [x] Resolved `context_refs` embedded in briefs (catalog docs, not just ref names)
 * [x] Auto-inject `doc:soul` on every task create (`ensureSoulContextRef`)
 * [x] Doctrine freshness check (`janus doctrine status`); scheduled dedup remains manual via `/maintenance/deduplicate`
-* [x] REL cognition bridge — optional `components.cognition` REST client, loop outcome logging, `janus rel status|context`
+* [x] REL cognition bridge — optional `components.cognition` REST client, loop outcome logging, `janus rel status|context|sync`
+* [x] `doc:rel-state` orchestrator context ref (token-capped live REL excerpt)
+* [x] Steward concept sync — REL → Smart-Library `Project Context` on complete loops
+* [x] REL in `docker-compose.yml` as `cognition` service (shared Ollama)
 
 ---
 

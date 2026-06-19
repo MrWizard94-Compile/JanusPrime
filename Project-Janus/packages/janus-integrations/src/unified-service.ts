@@ -1,6 +1,10 @@
 import { ContextResolver, type ResolvedContextDocument } from "@aether/context";
 import type { ValidationError } from "@aether/shared";
-import { CONTEXT_CATALOG } from "@aether/shared";
+import {
+  CONTEXT_CATALOG,
+  ORCHESTRATOR_ONLY_CONTEXT_REFS,
+  REL_STATE_CONTEXT_REF,
+} from "@aether/shared";
 import { TaskQueue } from "@aether/task-queue";
 import { OrchestratorService, publicContextRefs, type ExecutorBrief } from "@aether/orchestrator";
 import type { JanusConfig } from "./config.js";
@@ -146,6 +150,26 @@ export class JanusUnifiedService {
       }
     } catch {
       // Non-fatal if catalog documents are unavailable
+    }
+
+    if (
+      brief.assignee === "claude" &&
+      brief.context_refs.includes(REL_STATE_CONTEXT_REF) &&
+      this.config.components.cognition
+    ) {
+      try {
+        const relExcerpt = await this.relBridge.getStateExcerpt(
+          this.config.token_policy.rel_context_max_chars,
+        );
+        if (relExcerpt) {
+          const relContext = unified.resolved_context ?? [];
+          relContext.push({ ref: REL_STATE_CONTEXT_REF, excerpt: relExcerpt });
+          unified.resolved_context = relContext;
+          unified.token_estimate_chars += relExcerpt.length;
+        }
+      } catch {
+        // REL offline — non-fatal
+      }
     }
 
     unified.token_estimate_chars = Math.min(
@@ -360,6 +384,10 @@ export class JanusUnifiedService {
 
     return status;
   }
+
+  async syncRelConceptsToMemory(query?: string): Promise<{ seeded: boolean; message?: string }> {
+    return this.relBridge.syncConceptsToMemory(this.memory, query);
+  }
 }
 
 export function selectCatalogContextRefs(
@@ -370,6 +398,9 @@ export function selectCatalogContextRefs(
 
   for (const ref of contextRefs) {
     if (!(ref in CONTEXT_CATALOG)) {
+      continue;
+    }
+    if (ORCHESTRATOR_ONLY_CONTEXT_REFS.has(ref)) {
       continue;
     }
     if (options.skipSoulDuplicate && ref === "doc:soul") {

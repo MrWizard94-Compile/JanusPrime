@@ -40,6 +40,14 @@ describe("selectCatalogContextRefs", () => {
       }),
     ).toEqual(["doc:soul", "doc:handoff-protocol"]);
   });
+
+  it("skips doc:rel-state because it is resolved dynamically", () => {
+    expect(
+      selectCatalogContextRefs(["doc:rel-state", "doc:handoff-protocol"], {
+        skipSoulDuplicate: false,
+      }),
+    ).toEqual(["doc:handoff-protocol"]);
+  });
 });
 
 describe("buildResolvedContext", () => {

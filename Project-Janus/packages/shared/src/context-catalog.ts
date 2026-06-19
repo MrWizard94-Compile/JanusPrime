@@ -5,6 +5,12 @@ export interface ContextEntry {
 }
 
 export const SOUL_CONTEXT_REF = "doc:soul" as const;
+export const REL_STATE_CONTEXT_REF = "doc:rel-state" as const;
+
+/** Live REL excerpts — orchestrator assignee only (SOUL token policy). */
+export const ORCHESTRATOR_ONLY_CONTEXT_REFS: ReadonlySet<string> = new Set([
+  REL_STATE_CONTEXT_REF,
+]);
 
 /** Ensure every task carries canonical doctrine per SOUL.md §2. */
 export function ensureSoulContextRef(contextRefs: readonly string[]): string[] {
@@ -53,6 +59,11 @@ export const CONTEXT_CATALOG: Record<string, ContextEntry> = {
     ref: "arch:janus-unified",
     title: "JanusPrime unified system architecture",
     files: ["../references/unified-architecture.md"],
+  },
+  "doc:rel-state": {
+    ref: "doc:rel-state",
+    title: "REL cognitive state (live orchestrator context)",
+    files: ["../references/rel-state-bridge.md"],
   },
 };
 

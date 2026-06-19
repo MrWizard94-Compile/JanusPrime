@@ -30,6 +30,8 @@ const JanusConfigSchema = z.object({
         api_key_env: z.string().default("JANUS_REL_API_KEY"),
         bearer_token_env: z.string().default("JANUS_REL_BEARER_TOKEN"),
         log_loop_outcomes: z.boolean().default(true),
+        sync_concepts_to_memory: z.boolean().default(true),
+        concept_sync_max_chars: z.number().int().positive().default(2000),
       })
       .optional(),
   }),
@@ -52,12 +54,14 @@ const JanusConfigSchema = z.object({
       memory_slice_max_chars: z.number().int().positive().default(2000),
       resolved_context_max_chars: z.number().int().positive().default(3000),
       validation_error_max: z.number().int().positive().default(20),
+      rel_context_max_chars: z.number().int().positive().default(800),
     })
     .default({
       brief_max_chars: 12000,
       memory_slice_max_chars: 2000,
       resolved_context_max_chars: 3000,
       validation_error_max: 20,
+      rel_context_max_chars: 800,
     }),
   doctrine: z
     .object({

@@ -130,6 +130,16 @@ export class JanusAutonomousLoop {
         // REL cognition offline — non-fatal
       }
     }
+
+    if (result.complete && this.config.components.cognition?.sync_concepts_to_memory) {
+      try {
+        const query = `JanusPrime loop ${result.parent_id} accepted ${result.rollup.by_status.accepted ?? 0}/${result.rollup.total}`;
+        await this.unified.syncRelConceptsToMemory(query);
+      } catch {
+        // Memory or REL offline — non-fatal
+      }
+    }
+
     return result;
   }
 

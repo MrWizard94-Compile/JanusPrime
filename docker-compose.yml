@@ -1,5 +1,5 @@
-# JanusPrime service stack — memory + local LLM
-# Usage: docker compose up -d
+# JanusPrime service stack — memory + cognition + local LLM
+# Usage: copy .env.example to .env, then: docker compose up -d
 
 services:
   ollama:
@@ -27,6 +27,28 @@ services:
       - ./Smart-Library/.chroma_db:/app/.chroma_db
       - ./Smart-Library/.hf_cache:/app/.hf_cache
       - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+  cognition:
+    build:
+      context: ${REL_BUILD_CONTEXT:-C:/REL_Codex_Variant}
+      dockerfile: Dockerfile
+    container_name: janusprime-cognition
+    ports:
+      - "8080:8080"
+    environment:
+      - REL_PATH=/app/runtime
+      - REL_LOG_FORMAT=json
+      - REL_LOG_LEVEL=INFO
+      - REL_API_AUTH_REQUIRED=${REL_API_AUTH_REQUIRED:-false}
+      - REL_ADMIN_USERNAME=${REL_ADMIN_USERNAME:-admin}
+      - REL_ADMIN_PASSWORD=${REL_ADMIN_PASSWORD:-janusprime-local}
+      - REL_OAUTH2_SECRET=${REL_OAUTH2_SECRET:-janusprime-local-oauth2-secret-change-me}
+      - OLLAMA_BASE_URL=http://ollama:11434
+    volumes:
+      - ${REL_DATA_PATH:-C:/REL_Codex_Variant/data}:/app/runtime/data
     depends_on:
       - ollama
     restart: unless-stopped

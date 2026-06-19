@@ -29,6 +29,7 @@ Use `aether execute brief` only when Janus config is unavailable — it now auto
 | Ref | Content |
 |-----|---------|
 | `doc:soul` | SOUL.md |
+| `doc:rel-state` | Live REL state (orchestrator/Claude only) |
 | `arch:janus-unified` | Unified architecture |
 | `doc:handoff-protocol` | Validation gate protocol |
 

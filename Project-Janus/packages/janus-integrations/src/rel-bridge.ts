@@ -1,6 +1,7 @@
 import type { JanusConfig } from "./config.js";
 import { resolveCognitionRoot } from "./config.js";
 import type { AutonomousLoopResult } from "./autonomous-loop.js";
+import type { MemoryClient } from "./memory-client.js";
 import { RelClient, type RelContextResult, type RelHealth, type RelStateSummary } from "./rel-client.js";
 
 export interface CognitionStatus {
@@ -82,6 +83,51 @@ export class RelBridge {
     return result.reachable && result.data ? result.data : null;
   }
 
+  async getStateExcerpt(maxChars: number): Promise<string | undefined> {
+    if (!this.client) {
+      return undefined;
+    }
+    const state = await this.client.getStateSummary();
+    if (!state.reachable || !state.data?.summary) {
+      return undefined;
+    }
+    return truncateText(state.data.summary, maxChars);
+  }
+
+  async syncConceptsToMemory(
+    memory: MemoryClient,
+    query = "JanusPrime active projects and recent decisions",
+  ): Promise<{ seeded: boolean; message?: string }> {
+    const cognition = this.config.components.cognition;
+    if (!this.client || !cognition?.sync_concepts_to_memory) {
+      return { seeded: false, message: "sync_concepts_to_memory disabled or cognition not configured" };
+    }
+
+    const maxChars = cognition.concept_sync_max_chars;
+    const state = await this.client.getStateSummary();
+    const context = await this.client.loadContext(query, Math.min(1200, maxChars));
+    const analytics = await this.client.invokeTool("get_analytics");
+
+    if (!state.reachable && !context.reachable && !analytics.reachable) {
+      return { seeded: false, message: state.error ?? "REL unreachable" };
+    }
+
+    const content = formatConceptSyncPayload({
+      stateSummary: state.data?.summary,
+      contextText: context.data?.context,
+      analytics: analytics.data,
+      query,
+      maxChars,
+    });
+
+    if (!content.trim()) {
+      return { seeded: false, message: "no concept content to seed" };
+    }
+
+    const result = await memory.seed(content, "Project Context", "All");
+    return { seeded: true, message: result.message };
+  }
+
   async logAutonomousLoopOutcome(result: AutonomousLoopResult): Promise<void> {
     if (!this.client || !this.config.components.cognition?.log_loop_outcomes) {
       return;
@@ -94,13 +140,77 @@ export class RelBridge {
 
     if (result.complete) {
       await this.client.invokeTool("neural_learn", {
-        summary,
-        achievements,
-        parent_id: result.parent_id,
-        rounds_executed: result.rounds_executed,
+        text: summary,
       });
     }
   }
+}
+
+export function formatConceptSyncPayload(input: {
+  stateSummary?: string;
+  contextText?: string;
+  analytics: unknown;
+  query: string;
+  maxChars: number;
+}): string {
+  const parts: string[] = [
+    "Source: REL steward/neural-web bridge → Smart-Library",
+    `Query: ${input.query}`,
+  ];
+
+  if (input.stateSummary) {
+    parts.push(`State: ${input.stateSummary}`);
+  }
+
+  if (input.contextText) {
+    parts.push(`Context:\n${input.contextText}`);
+  }
+
+  const analyticsLines = extractAnalyticsHighlights(input.analytics);
+  if (analyticsLines.length > 0) {
+    parts.push(`Neural highlights:\n${analyticsLines.join("\n")}`);
+  }
+
+  return truncateText(parts.join("\n\n"), input.maxChars);
+}
+
+export function extractAnalyticsHighlights(analytics: unknown): string[] {
+  if (!analytics || typeof analytics !== "object") {
+    return [];
+  }
+
+  const record = analytics as Record<string, unknown>;
+  const payload =
+    record["result"] && typeof record["result"] === "object"
+      ? (record["result"] as Record<string, unknown>)
+      : record;
+
+  const lines: string[] = [];
+
+  const neuralWeb = payload["neural_web"];
+  if (neuralWeb && typeof neuralWeb === "object") {
+    const stats = neuralWeb as Record<string, unknown>;
+    lines.push(
+      `neurons:${stats["total_neurons"] ?? "?"} synapses:${stats["total_synapses"] ?? "?"} activations:${stats["total_activations"] ?? "?"}`,
+    );
+  }
+
+  if (typeof payload["total_projects"] === "number") {
+    lines.push(`active_projects:${payload["total_projects"]}`);
+  }
+
+  if (typeof payload["total_sessions"] === "number") {
+    lines.push(`sessions:${payload["total_sessions"]}`);
+  }
+
+  return lines;
+}
+
+function truncateText(text: string, maxChars: number): string {
+  if (text.length <= maxChars) {
+    return text;
+  }
+  return `${text.slice(0, maxChars - 3)}...`;
 }
 
 export function formatLoopSummary(result: AutonomousLoopResult): string {

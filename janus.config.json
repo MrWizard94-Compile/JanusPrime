@@ -24,7 +24,9 @@
       "rest_url": "http://localhost:8080",
       "api_key_env": "JANUS_REL_API_KEY",
       "bearer_token_env": "JANUS_REL_BEARER_TOKEN",
-      "log_loop_outcomes": true
+      "log_loop_outcomes": true,
+      "sync_concepts_to_memory": true,
+      "concept_sync_max_chars": 2000
     }
   },
   "self_repair": {
@@ -37,7 +39,8 @@
     "brief_max_chars": 12000,
     "memory_slice_max_chars": 2000,
     "resolved_context_max_chars": 3000,
-    "validation_error_max": 20
+    "validation_error_max": 20,
+    "rel_context_max_chars": 800
   },
   "doctrine": {
     "soul_path": "SOUL.md",
