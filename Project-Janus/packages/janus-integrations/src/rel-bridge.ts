@@ -1,5 +1,5 @@
 import type { JanusConfig } from "./config.js";
-import { resolveCognitionRoot } from "./config.js";
+import { tryResolveCognitionRoot } from "./config.js";
 import type { AutonomousLoopResult } from "./autonomous-loop.js";
 import type { MemoryClient } from "./memory-client.js";
 import { RelClient, type RelContextResult, type RelHealth, type RelStateSummary } from "./rel-client.js";
@@ -37,7 +37,7 @@ export class RelBridge {
       return { configured: false, reachable: false };
     }
 
-    const cognitionRoot = resolveCognitionRoot(this.janusRoot, this.config);
+    const cognitionRoot = tryResolveCognitionRoot(this.janusRoot, this.config);
     const health = await this.client.health();
     if (!health.reachable) {
       const status: CognitionStatus = {

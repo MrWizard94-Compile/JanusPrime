@@ -1,5 +1,8 @@
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { expandConfigPath, findJanusRoot, loadJanusConfig } from "./config.js";
+import { expandConfigPath, findJanusRoot, loadEnvFile, loadJanusConfig } from "./config.js";
 
 describe("janus config", () => {
   it("finds janus.config.json from Project-Janus subdirectory", async () => {
@@ -19,6 +22,34 @@ describe("janus config", () => {
     expect(config.doctrine.soul_path).toBe("SOUL.md");
     expect(config.doctrine.inject_into_brief).toBe(true);
     expect(config.components.cognition?.root).toBe("env:REL_COGNITION_ROOT");
+  });
+});
+
+describe("loadEnvFile", () => {
+  let tempRoot = "";
+
+  afterEach(async () => {
+    vi.unstubAllEnvs();
+    if (tempRoot) {
+      await rm(tempRoot, { recursive: true, force: true });
+      tempRoot = "";
+    }
+  });
+
+  it("loads unset vars from .env without overriding existing", async () => {
+    tempRoot = await mkdtemp(join(tmpdir(), "janus-env-"));
+    await writeFile(
+      join(tempRoot, ".env"),
+      "JANUS_TEST_ENV_VAR=from-file\n# comment\nEXISTING=from-dotenv\n",
+      "utf8",
+    );
+    vi.stubEnv("EXISTING", "already-set");
+    delete process.env["JANUS_TEST_ENV_VAR"];
+
+    await loadEnvFile(tempRoot);
+
+    expect(process.env["JANUS_TEST_ENV_VAR"]).toBe("from-file");
+    expect(process.env["EXISTING"]).toBe("already-set");
   });
 });
 

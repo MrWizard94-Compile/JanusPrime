@@ -108,11 +108,44 @@ export async function findJanusRoot(startDir: string): Promise<string> {
   );
 }
 
+/** Load workspace `.env` into `process.env` (does not override existing vars). */
+export async function loadEnvFile(janusRoot: string): Promise<void> {
+  let raw: string;
+  try {
+    raw = await readFile(join(janusRoot, ".env"), "utf8");
+  } catch {
+    return;
+  }
+
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) {
+      continue;
+    }
+    const eq = trimmed.indexOf("=");
+    if (eq <= 0) {
+      continue;
+    }
+    const key = trimmed.slice(0, eq).trim();
+    let value = trimmed.slice(eq + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    if (process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  }
+}
+
 export async function loadJanusConfig(startDir: string): Promise<{
   root: string;
   config: JanusConfig;
 }> {
   const root = await findJanusRoot(startDir);
+  await loadEnvFile(root);
   const raw = await readFile(join(root, CONFIG_FILENAME), "utf8");
   const config = JanusConfigSchema.parse(JSON.parse(raw));
   return { root, config };
@@ -162,4 +195,16 @@ export function resolveCognitionRoot(janusRoot: string, config: JanusConfig): st
     return undefined;
   }
   return expandConfigPath(janusRoot, cognition.root);
+}
+
+/** Resolve cognition filesystem root when env is configured; undefined if env vars are missing. */
+export function tryResolveCognitionRoot(
+  janusRoot: string,
+  config: JanusConfig,
+): string | undefined {
+  try {
+    return resolveCognitionRoot(janusRoot, config);
+  } catch {
+    return undefined;
+  }
 }

@@ -1,9 +1,11 @@
+import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectJanusRoot = join(__dirname, "..");
+const janusWorkspaceRoot = join(projectJanusRoot, "..");
 const cli = join(projectJanusRoot, "packages", "cli", "dist", "bin.js");
 
 const MEMORY_HEALTH_URL = "http://localhost:8000/health";
@@ -53,10 +55,38 @@ async function probeHealth(label, url) {
   }
 }
 
-async function runCli(args, timeoutMs = CLI_TIMEOUT_MS) {
+async function loadEnvFile(envPath) {
+  try {
+    const raw = await readFile(envPath, "utf8");
+    const env = { ...process.env };
+    for (const line of raw.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const eq = trimmed.indexOf("=");
+      if (eq <= 0) continue;
+      const key = trimmed.slice(0, eq).trim();
+      let value = trimmed.slice(eq + 1).trim();
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        value = value.slice(1, -1);
+      }
+      if (env[key] === undefined) {
+        env[key] = value;
+      }
+    }
+    return env;
+  } catch {
+    return { ...process.env };
+  }
+}
+
+async function runCli(args, env, timeoutMs = CLI_TIMEOUT_MS) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [cli, ...args], {
       cwd: projectJanusRoot,
+      env,
       windowsHide: true,
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -142,7 +172,8 @@ async function main() {
 
   console.log("e2e-services: both health endpoints OK — running CLI status checks...");
 
-  const janusStatus = await runCli(["status"]);
+  const cliEnv = await loadEnvFile(join(janusWorkspaceRoot, ".env"));
+  const janusStatus = await runCli(["status"], cliEnv);
   if (janusStatus.code !== 0) {
     console.error("e2e-services: FAIL — `janus status` exited non-zero");
     if (janusStatus.stderr.trim()) console.error(janusStatus.stderr.trim());
@@ -155,7 +186,7 @@ async function main() {
 
   await delay(250);
 
-  const relStatus = await runCli(["rel", "status"]);
+  const relStatus = await runCli(["rel", "status"], cliEnv);
   if (relStatus.code !== 0) {
     console.error("e2e-services: FAIL — `janus rel status` exited non-zero");
     if (relStatus.stderr.trim()) console.error(relStatus.stderr.trim());
