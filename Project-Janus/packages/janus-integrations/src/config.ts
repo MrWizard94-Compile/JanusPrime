@@ -129,7 +129,7 @@ export function expandConfigPath(janusRoot: string, pathValue: string): string {
     }
     const envValue =
       process.env[varName] ??
-      (varName === "REL_COGNITION_ROOT" ? process.env.REL_BUILD_CONTEXT : undefined);
+      (varName === "REL_COGNITION_ROOT" ? process.env["REL_BUILD_CONTEXT"] : undefined);
     if (envValue === undefined || envValue === "") {
       throw new Error(
         `Environment variable ${varName} is not set (required by config path ${pathValue})`,
