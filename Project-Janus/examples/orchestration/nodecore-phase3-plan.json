@@ -1,0 +1,110 @@
+{
+  "parent": {
+    "assignee": "claude",
+    "workload": null,
+    "validation_profile": "typescript-v1",
+    "context_refs": [
+      "doc:soul",
+      "arch:janus-unified",
+      "doc:handoff-protocol"
+    ],
+    "spec": {
+      "objective": "Node Core phase 3 — typed markers, datagen output, and Base Wars Omni32 pack wiring",
+      "constraints": [
+        "All mutations pass validation kernel before disk write",
+        "Forge 1.20.1 — align with Base Wars vision",
+        "Use janus brief for executor context; seed accepted patterns to memory"
+      ],
+      "files_in_scope": [],
+      "acceptance_criteria": [
+        "All child tasks reach accepted status",
+        "gradlew build passes in nodecore workload worktree",
+        "nodecore namespace present in Omni32 resource pack build"
+      ]
+    }
+  },
+  "children": [
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "neoforge-mixin-v1",
+        "context_refs": [
+          "doc:soul",
+          "doc:handoff-protocol"
+        ],
+        "spec": {
+          "objective": "Add node type block state to node_marker — cycle types on sneak-use, register matching NodeType on place",
+          "constraints": [
+            "No stubs or TODOs",
+            "Preserve existing /nodecore commands and markerDefaultType fallback"
+          ],
+          "files_in_scope": [
+            "src/main/java/com/mrwizard94/nodecore/block/NodeMarkerBlock.java",
+            "src/main/java/com/mrwizard94/nodecore/event/NodeMarkerHandler.java",
+            "src/main/resources/assets/nodecore/blockstates/node_marker.json"
+          ],
+          "acceptance_criteria": [
+            "gradlew build exits 0",
+            "Sneak+use cycles node type; place registers selected type"
+          ]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "neoforge-mixin-v1",
+        "context_refs": [
+          "doc:soul",
+          "doc:handoff-protocol"
+        ],
+        "spec": {
+          "objective": "Run datagen and commit generated node_spacing_hints.json to main resources",
+          "constraints": [
+            "Use existing NodeSpacingWorldgenProvider defaults aligned with NodeCoreConfig"
+          ],
+          "files_in_scope": [
+            "src/generated/resources/data/nodecore/worldgen/node_spacing_hints.json"
+          ],
+          "acceptance_criteria": [
+            "gradlew runData succeeds",
+            "Generated JSON copied or synced to shipped resources"
+          ]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "omni32",
+        "validation_profile": "asset-audit-v1",
+        "context_refs": [
+          "doc:soul",
+          "arch:janus-unified",
+          "asset:mod:nodecore",
+          "asset:action:build"
+        ],
+        "spec": {
+          "objective": "Wire nodecore namespace into Omni32 resource pack via janus assets build",
+          "constraints": [
+            "nodecore textures must appear under output/resourcepack/Omni32/assets/nodecore/"
+          ],
+          "files_in_scope": [],
+          "acceptance_criteria": [
+            "janus assets build exits 0",
+            "nodecore textures present in Omni32 pack"
+          ]
+        }
+      }
+    }
+  ],
+  "provision": {
+    "auto_worktree": true,
+    "auto_prepare": false
+  }
+}
