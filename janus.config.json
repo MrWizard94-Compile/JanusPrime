@@ -15,7 +15,7 @@
       "max_context_chars": 8000
     },
     "assets": {
-      "root": "AssetConverter-sparse",
+      "root": "../../../../../Projects/AssetConverter",
       "entry": "ac.py",
       "python": "python"
     },

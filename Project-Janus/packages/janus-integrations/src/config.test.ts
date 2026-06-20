@@ -18,7 +18,7 @@ describe("janus config", () => {
     );
     expect(config.name).toBe("janusprime");
     expect(config.components.memory.url).toBe("http://localhost:8000");
-    expect(config.components.assets.root).toBe("AssetConverter-sparse");
+    expect(config.components.assets.root).toBe("../../../../../Projects/AssetConverter");
     expect(config.doctrine.soul_path).toBe("SOUL.md");
     expect(config.doctrine.inject_into_brief).toBe(true);
     expect(config.components.cognition?.root).toBe("env:REL_COGNITION_ROOT");

@@ -5,5 +5,5 @@
   "branch": "main",
   "validation_profile": "asset-audit-v1",
   "clone_path": ".",
-  "local_root": "../AssetConverter-sparse"
+  "local_root": "../../../../../Projects/AssetConverter"
 }
