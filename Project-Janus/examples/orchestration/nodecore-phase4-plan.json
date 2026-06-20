@@ -1,0 +1,86 @@
+{
+  "parent": {
+    "assignee": "claude",
+    "workload": null,
+    "validation_profile": "typescript-v1",
+    "context_refs": [
+      "doc:soul",
+      "arch:janus-unified",
+      "doc:handoff-protocol"
+    ],
+    "spec": {
+      "objective": "Node Core phase 4 — LOD worldgen bridge and per-type marker textures",
+      "constraints": [
+        "LOD integration must be soft-optional (no hard compile dependency)",
+        "Per-type textures pass asset-audit-v1 and Omni32 build",
+        "gradlew build passes"
+      ],
+      "files_in_scope": [],
+      "acceptance_criteria": [
+        "All child tasks reach accepted status",
+        "NodeLodBridge registers nodes when LOD present",
+        "Six distinct marker textures wired in blockstates/models"
+      ]
+    }
+  },
+  "children": [
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "neoforge-mixin-v1",
+        "context_refs": [
+          "doc:soul",
+          "doc:handoff-protocol"
+        ],
+        "spec": {
+          "objective": "Implement soft-optional Large Ore Deposits bridge — detect lode mod, register nodes at deposit centers via NodeWorldgenStub",
+          "constraints": [
+            "No compile-time dependency on LOD",
+            "Use ModList + optional event/IMC hook",
+            "Map LOD deposit types to NodeType where possible"
+          ],
+          "files_in_scope": [
+            "src/main/java/com/mrwizard94/nodecore/worldgen/"
+          ],
+          "acceptance_criteria": [
+            "gradlew build exits 0 without LOD installed",
+            "NodeLodBridge documented in node-core-design.md"
+          ]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "asset-audit-v1",
+        "context_refs": [
+          "doc:soul",
+          "asset:mod:nodecore",
+          "asset:action:run"
+        ],
+        "spec": {
+          "objective": "Generate per-type node_marker textures (6 variants) with distinct industrial palette accents",
+          "constraints": [
+            "32x Omni32 compliance via xBRZ from 16x16 sources",
+            "Update blockstates/models per node_type variant"
+          ],
+          "files_in_scope": [
+            "src/main/resources/assets/nodecore/"
+          ],
+          "acceptance_criteria": [
+            "Six block texture variants distinguishable in-game",
+            "asset audit passes for nodecore"
+          ]
+        }
+      }
+    }
+  ],
+  "provision": {
+    "auto_worktree": true,
+    "auto_prepare": false
+  }
+}
