@@ -1,8 +1,8 @@
-{
+﻿{
   "parent": {
     "workload": null,
     "validation_profile": "typescript-v1",
-    "context_refs": ["doc:soul", "arch:janus-unified", "doc:handoff-protocol"],
+    "context_refs": ["doc:claude", "arch:janus-unified", "doc:handoff-protocol"],
     "spec": {
       "objective": "Deliver a feature spanning code changes and asset pipeline updates",
       "constraints": [
@@ -24,7 +24,7 @@
       "task": {
         "workload": "framedblocks",
         "validation_profile": "neoforge-mixin-v1",
-        "context_refs": ["doc:soul", "arch:framedblocks-mixin-pattern"],
+        "context_refs": ["doc:claude", "arch:framedblocks-mixin-pattern"],
         "spec": {
           "objective": "Implement mixin changes in FramedBlocks workload",
           "constraints": ["Follow neoforge-mixin domain rules M001-M006"],
@@ -40,7 +40,7 @@
         "workload": "omni32",
         "validation_profile": "asset-audit-v1",
         "context_refs": [
-          "doc:soul",
+          "doc:claude",
           "arch:janus-unified",
           "asset:mod:create",
           "asset:action:audit"

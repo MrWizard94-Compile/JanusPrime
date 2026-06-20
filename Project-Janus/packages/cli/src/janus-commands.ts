@@ -58,11 +58,11 @@ export function registerJanusCommands(program: Command): void {
       console.log(JSON.stringify(result, null, 2));
     });
 
-  const doctrine = janus.command("doctrine").description("SOUL.md doctrine operations");
+  const doctrine = janus.command("doctrine").description("CLAUDE.md doctrine operations");
 
   doctrine
     .command("seed")
-    .description("Bootstrap SOUL.md into Smart-Library memory (run once per environment)")
+    .description("Bootstrap CLAUDE.md into Smart-Library memory (run once per environment)")
     .action(async () => {
       const service = await loadJanusService(process.cwd());
       const result = await service.seedDoctrine();
@@ -71,8 +71,8 @@ export function registerJanusCommands(program: Command): void {
 
   doctrine
     .command("status")
-    .description("Compare SOUL.md hash against doctrine stored in memory")
-    .option("--reseed", "Re-seed SOUL.md when memory is stale or unreachable")
+    .description("Compare CLAUDE.md hash against doctrine stored in memory")
+    .option("--reseed", "Re-seed CLAUDE.md when memory is stale or unreachable")
     .action(async (options: { reseed?: boolean }) => {
       const service = await loadJanusService(process.cwd());
       let status = await service.getDoctrineStatus();

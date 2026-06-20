@@ -1,0 +1,9 @@
+{
+  "id": "omni32-loader",
+  "description": "Omni32 Loader — Forge client resource pack loader for Base Wars 32x textures",
+  "repository": "https://github.com/MrWizard94-Compile/Omni32_Loader.git",
+  "branch": "main",
+  "validation_profile": "forge-mod-v1",
+  "clone_path": "repo",
+  "local_root": "../../../../../Projects/Omni32_Loader"
+}

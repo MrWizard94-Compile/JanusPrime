@@ -3,7 +3,7 @@ import { z } from "zod";
 import {
   JanusUnifiedService,
   loadJanusConfig,
-  loadSoul,
+  loadClaude,
   MemoryClient,
   AssetRunner,
   RelBridge,
@@ -26,21 +26,21 @@ export function registerJanusMcpResources(
   const relBridge = new RelBridge(context.janusRoot, context.config);
 
   server.registerResource(
-    "janus-doctrine-soul",
-    "janus://doctrine/soul",
+    "janus-doctrine-claude",
+    "janus://doctrine/claude",
     {
-      title: "SOUL.md — Janus single source of truth",
+      title: "CLAUDE.md — Janus single source of truth",
       description: "Operational doctrine, invariants, token policy, validation rules",
       mimeType: "text/markdown",
     },
     async () => {
-      const soul = await loadSoul(context.janusRoot, context.config);
+      const claude = await loadClaude(context.janusRoot, context.config);
       return {
         contents: [
           {
-            uri: "janus://doctrine/soul",
+            uri: "janus://doctrine/claude",
             mimeType: "text/markdown",
-            text: soul,
+            text: claude,
           },
         ],
       };

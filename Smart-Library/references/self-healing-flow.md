@@ -1,8 +1,8 @@
-# Smart Code Library — Self-Healing Flow
+﻿# Smart Code Library — Self-Healing Flow
 
 How the `heal_and_verify` loop works, what gets stored in the vector database, and when healing succeeds or fails.
 
-Aligned with **Janus SOUL.md §6** (Self-Repair Contract): verified heals seed memory; unverified fixes do not.
+Aligned with **Janus CLAUDE.md §6** (Self-Repair Contract): verified heals seed memory; unverified fixes do not.
 
 ---
 
@@ -18,9 +18,9 @@ Entry point: `POST /execute-heal` → `sandbox.heal_and_verify(code)`
 |-----------------|------------------------|---------|
 | `MemoryClient.queryContextSlices()` | `POST /query/context` | Token-efficient retrieval for executor briefs (no LLM call) |
 | `MemoryClient.heal()` | `POST /execute-heal` | Sandboxed execution + verified heal write-back |
-| `janus doctrine seed` | `POST /seed` | Bootstrap SOUL.md as `Operational Doctrine` |
+| `janus doctrine seed` | `POST /seed` | Bootstrap CLAUDE.md as `Operational Doctrine` |
 
-Executor briefs use `/query/context` (capped slices per `token_policy.memory_slice_max_chars`) instead of `/query`, which invokes the LLM. This matches SOUL §3 token policy.
+Executor briefs use `/query/context` (capped slices per `token_policy.memory_slice_max_chars`) instead of `/query`, which invokes the LLM. This matches CLAUDE §3 token policy.
 
 ---
 
@@ -194,7 +194,7 @@ Maximum **3 executions** per request (not 3 LLM calls after success).
 | Failed heal (all attempts exhausted) | **No** |
 | LLM parse failure (invalid JSON) | **No** — loop breaks immediately |
 
-This enforces SOUL §6 and anti-pattern **"Seeding unverified heals to memory"** (SOUL §8).
+This enforces CLAUDE §6 and anti-pattern **"Seeding unverified heals to memory"** (CLAUDE §8).
 
 ---
 

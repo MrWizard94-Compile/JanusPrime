@@ -234,6 +234,11 @@ export class WorkloadManager {
     }
 
     const repoPath = await this.assertRepoReady(workloadId);
+    const manifest = await this.get(workloadId);
+    if (manifest.local_root && worktreeName === "local") {
+      return repoPath;
+    }
+
     return resolveWorktreePath(repoPath, worktreeName);
   }
 }

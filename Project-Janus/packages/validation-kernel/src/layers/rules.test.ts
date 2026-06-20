@@ -3,7 +3,7 @@ import { VALIDATION_PROFILES } from "@aether/shared";
 import { runRulesLayer } from "./rules.js";
 
 describe("runRulesLayer", () => {
-  it("fires SOUL003 on typescript-v1 profile when patch has hardcoded secret", () => {
+  it("fires CLAUDE003 on typescript-v1 profile when patch has hardcoded secret", () => {
     const filePath = "src/config.ts";
     const result = runRulesLayer(VALIDATION_PROFILES["typescript-v1"], {
       proposal: {
@@ -25,6 +25,6 @@ describe("runRulesLayer", () => {
 
     expect(result.ran).toBe(true);
     expect(result.passed).toBe(false);
-    expect(result.errors.some((error) => error.rule === "SOUL003")).toBe(true);
+    expect(result.errors.some((error) => error.rule === "CLAUDE003")).toBe(true);
   });
 });

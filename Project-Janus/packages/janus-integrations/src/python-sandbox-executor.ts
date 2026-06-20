@@ -33,7 +33,7 @@ export class PythonSandboxExecutor {
     options?: PythonSandboxExecutorOptions,
   ) {
     this.orchestratorRoot = resolveOrchestratorRoot(janusRoot, config);
-    this.queue = new TaskQueue(this.orchestratorRoot);
+    this.queue = new TaskQueue(janusRoot);
     this.memory = options?.memory ?? new MemoryClient(config.components.memory);
   }
 

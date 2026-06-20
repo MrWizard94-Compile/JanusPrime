@@ -6,6 +6,7 @@ dist/
 .worktrees/
 .tools/
 terminals/
+agent-tools/
 
 # Smart-Library runtime
 Smart-Library/.chroma_db/

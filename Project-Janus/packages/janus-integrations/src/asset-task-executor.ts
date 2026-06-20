@@ -32,7 +32,7 @@ export class AssetTaskExecutor {
     this.janusRoot = janusRoot;
     this.config = config;
     this.orchestratorRoot = resolveOrchestratorRoot(janusRoot, config);
-    this.queue = new TaskQueue(this.orchestratorRoot);
+    this.queue = new TaskQueue(janusRoot);
     this.kernel = new ValidationKernel();
     this.assets = new AssetRunner(janusRoot, config);
   }

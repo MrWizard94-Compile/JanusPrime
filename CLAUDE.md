@@ -1,8 +1,8 @@
-# SOUL.md — JanusPrime Single Source of Truth
+# CLAUDE.md — JanusPrime Single Source of Truth
 
 **Version:** 2.0.0  
 **Status:** Canonical — all agents, services, and validation gates derive doctrine from this file.  
-**Path:** `JanusPrime/SOUL.md` (workspace root only; subproject copies are stubs)  
+**Path:** `JanusPrime/CLAUDE.md` (workspace root only; subproject copies are stubs)  
 **Repository:** [github.com/MrWizard94-Compile/JanusPrime](https://github.com/MrWizard94-Compile/JanusPrime)
 
 ---
@@ -45,7 +45,7 @@ These apply to **every** mutation — code, assets, memory, disk:
 | **Memory** | Smart-Library | Retrieval, heal verification, doctrine storage |
 | **Asset Engine** | AssetConverter | Omni32 pipeline under `asset-audit-v1` profile |
 
-**Context ref:** `doc:soul` — always include on parent and child tasks.
+**Context ref:** `doc:claude` — always include on parent and child tasks.
 
 ---
 
@@ -56,11 +56,11 @@ These apply to **every** mutation — code, assets, memory, disk:
 | Executor brief max | 12,000 chars | `token_policy.brief_max_chars` |
 | Memory slice max | 2,000 chars each | `token_policy.memory_slice_max_chars` |
 | Memory slice count | 3 | `memory.context_limit` |
-| SOUL excerpt in brief | 4,000 chars | `doctrine.brief_excerpt_max_chars` |
+| CLAUDE excerpt in brief | 4,000 chars | `doctrine.brief_excerpt_max_chars` |
 | Resolved catalog docs | 3,000 chars total | `token_policy.resolved_context_max_chars` |
 | Validation errors in brief | 20 max | `token_policy.validation_error_max` |
 
-**Rule:** Claude caches stable doctrine + architecture. Grok gets `janus brief` output only — never full SOUL + full architecture + full memory dump.
+**Rule:** Claude caches stable doctrine + architecture. Grok gets `janus brief` output only — never full CLAUDE + full architecture + full memory dump.
 
 ---
 
@@ -78,10 +78,10 @@ These apply to **every** mutation — code, assets, memory, disk:
 
 | Rule ID | Layer | Enforcement |
 |---------|-------|-------------|
-| SOUL001 | rules | No TODO/FIXME/PLACEHOLDER/not implemented |
-| SOUL002 | rules | No @ts-ignore / @SuppressWarnings |
-| SOUL003 | rules | No hardcoded secrets (api_key, password, token literals) |
-| SOUL004 | rules | No eval(), new Function(), child_process in patches |
+| CLAUDE001 | rules | No TODO/FIXME/PLACEHOLDER/not implemented |
+| CLAUDE002 | rules | No @ts-ignore / @SuppressWarnings |
+| CLAUDE003 | rules | No hardcoded secrets (api_key, password, token literals) |
+| CLAUDE004 | rules | No eval(), new Function(), child_process in patches |
 | TS001–TS002 | rules | TypeScript scope, no `any` |
 | A001–A003 | rules | Asset task markers and pipeline |
 | B001 | build | Build/audit command must pass |
@@ -99,7 +99,7 @@ Plan → Provision → Execute → Validate → [fail → Repair context → Ret
 
 | Event | Memory seed? | Category |
 |-------|--------------|----------|
-| SOUL bootstrap | Yes (once) | `Operational Doctrine` |
+| CLAUDE bootstrap | Yes (once) | `Operational Doctrine` |
 | Accepted task | Yes | `Accepted Task Pattern` |
 | Verified heal (after retry) | Yes | `Self-Healing Patch` |
 | Validation repair (post-accept) | Yes | `Validation Repair Pattern` via `/seed-repair` |
@@ -123,7 +123,7 @@ Plan → Provision → Execute → Validate → [fail → Repair context → Ret
 * Shipping without validation gate
 * Dumping full context to executors
 * Seeding unverified heals to memory
-* Duplicate SOUL copies that can drift (canonical = workspace root only)
+* Duplicate CLAUDE copies that can drift (canonical = workspace root only)
 * Suppressing warnings instead of fixing
 * Placeholder code in patch proposals
 
@@ -131,7 +131,7 @@ Plan → Provision → Execute → Validate → [fail → Repair context → Ret
 
 ## 9. Bootstrap Checklist
 
-1. Read this file (`doc:soul` / `janus://doctrine/soul`)
+1. Read this file (`doc:claude` / `janus://doctrine/claude`)
 2. Read `references/unified-architecture.md` (`arch:janus-unified`)
 3. Read `Project-Janus/docs/phase0/handoff-protocol.md` (`doc:handoff-protocol`) — path from workspace root
 4. Run `janus status` — verify memory + assets
@@ -143,11 +143,11 @@ Plan → Provision → Execute → Validate → [fail → Repair context → Ret
 ## 10. Proposed Evolutions (Living Roadmap)
 
 * [ ] Phase 4: Theia IDE — Ghost Buffer + Phantom Cursor + Validation Dashboard
-* [x] Autonomous manual-patch loop — staged patches + SOUL auto-repair for `patch_mode: manual`
+* [x] Autonomous manual-patch loop — staged patches + CLAUDE auto-repair for `patch_mode: manual`
 * [x] `POST /seed-repair` — validation error patterns in memory
-* [x] SOUL rule pack expansion — SOUL003 (secrets), SOUL004 (eval/child_process)
+* [x] CLAUDE rule pack expansion — CLAUDE003 (secrets), CLAUDE004 (eval/child_process)
 * [x] Resolved `context_refs` embedded in briefs (catalog docs, not just ref names)
-* [x] Auto-inject `doc:soul` on every task create (`ensureSoulContextRef`)
+* [x] Auto-inject `doc:claude` on every task create (`ensureClaudeContextRef`)
 * [x] Doctrine freshness check (`janus doctrine status`); scheduled dedup remains manual via `/maintenance/deduplicate`
 * [x] REL cognition bridge — optional `components.cognition` REST client, loop outcome logging, `janus rel status|context|sync`
 * [x] `doc:rel-state` orchestrator context ref (token-capped live REL excerpt)
@@ -156,4 +156,4 @@ Plan → Provision → Execute → Validate → [fail → Repair context → Ret
 
 ---
 
-*This file is machine-loaded by `@janus/integrations`, exposed via MCP `janus://doctrine/soul`, registered as `doc:soul` in the context catalog (auto-injected on task create), enforced by validation rules SOUL001–SOUL004, embedded in unified briefs as `soul_doctrine` + `resolved_context`, and seeded to Smart-Library on `janus doctrine seed`.*
+*This file is machine-loaded by `@janus/integrations`, exposed via MCP `janus://doctrine/claude`, registered as `doc:claude` in the context catalog (auto-injected on task create), enforced by validation rules CLAUDE001–CLAUDE004, embedded in unified briefs as `claude_doctrine` + `resolved_context`, and seeded to Smart-Library on `janus doctrine seed`.*

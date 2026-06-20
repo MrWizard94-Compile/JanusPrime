@@ -51,7 +51,7 @@ describe("registerJanusMcpResources", () => {
     expect(registerTool).toHaveBeenCalledTimes(2);
 
     const resourceNames = registerResource.mock.calls.map((call) => call[0]);
-    expect(resourceNames).toContain("janus-doctrine-soul");
+    expect(resourceNames).toContain("janus-doctrine-claude");
     expect(resourceNames).toContain("janus-task-brief");
     expect(resourceNames).toContain("janus-task-repair");
     if (config.components.cognition) {

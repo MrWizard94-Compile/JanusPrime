@@ -5,7 +5,7 @@ import { TaskQueue } from "@aether/task-queue";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { excerptSoul, loadJanusConfig, loadSoul } from "@janus/integrations";
+import { excerptClaude, loadJanusConfig, loadClaude } from "@janus/integrations";
 import { registerJanusMcpResources, resolveJanusRoot } from "./janus-resources.js";
 
 export interface AetherMcpOptions {
@@ -18,16 +18,16 @@ export async function createAetherMcpServer(options: AetherMcpOptions): Promise<
   const context = new ContextResolver(options.repoRoot);
   const boundTaskId = options.taskId;
 
-  let soulInstruction = "";
+  let claudeInstruction = "";
   const discoveredRoot = await resolveJanusRoot(options.repoRoot);
   const janusRoot = process.env["JANUS_ROOT"] ?? discoveredRoot;
   if (janusRoot) {
     try {
       const { config } = await loadJanusConfig(janusRoot);
       if (config.doctrine.inject_into_mcp_instructions) {
-        const soul = await loadSoul(janusRoot, config);
-        const excerpt = excerptSoul(soul, config.doctrine.mcp_instruction_excerpt_max_chars);
-        soulInstruction = `\n\nOperational doctrine (SOUL.md excerpt):\n${excerpt}`;
+        const claude = await loadClaude(janusRoot, config);
+        const excerpt = excerptClaude(claude, config.doctrine.mcp_instruction_excerpt_max_chars);
+        claudeInstruction = `\n\nOperational doctrine (CLAUDE.md excerpt):\n${excerpt}`;
       }
     } catch {
       // Non-fatal if doctrine unavailable
@@ -42,9 +42,9 @@ export async function createAetherMcpServer(options: AetherMcpOptions): Promise<
     {
       instructions: [
         "Janus/Aether MCP — task-scoped agent surface. Bound to a single task id.",
-        "Read janus://doctrine/soul or aether://context/doc:soul for full operational doctrine.",
+        "Read janus://doctrine/claude or aether://context/doc:claude for full operational doctrine.",
         "Use resources: task spec, validation result, unified brief, repair context, memory health.",
-        soulInstruction,
+        claudeInstruction,
       ].join(" "),
     },
   );

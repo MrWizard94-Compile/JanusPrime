@@ -1,9 +1,9 @@
-{
+﻿{
   "parent_id": "REPLACE_WITH_PARENT_TASK_ID",
   "assignee": "grok",
   "workload": "framedblocks",
   "context_refs": [
-    "doc:soul",
+    "doc:claude",
     "arch:framedblocks-mixin-pattern",
     "doc:handoff-protocol",
     "ref:validation-rules",

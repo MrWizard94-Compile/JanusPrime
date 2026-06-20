@@ -37,5 +37,5 @@ Requires JDK 21+ available as `java` on PATH (override with `--java`).
 | LSP severity | Kernel treatment |
 |--------------|------------------|
 | Error        | Blocking failure   |
-| Warning      | Blocking in Phase 0 (SOUL: zero warnings) |
+| Warning      | Blocking in Phase 0 (CLAUDE: zero warnings) |
 | Info/Hint    | Logged, non-blocking unless rule pack says otherwise |

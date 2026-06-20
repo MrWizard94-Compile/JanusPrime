@@ -1,4 +1,4 @@
-# JanusPrime System Audit
+﻿# JanusPrime System Audit
 
 **Date:** 2026-06-19  
 **Post-remediation sync:** 2026-06-19  
@@ -16,7 +16,7 @@ JanusPrime is **architecturally coherent, buildable, and remediation-complete** 
 
 | ID | Status | Notes |
 |----|--------|-------|
-| C1 | **Fixed** | SOUL rules concatenated in `runRulesLayer`; cross-profile test added |
+| C1 | **Fixed** | CLAUDE rules concatenated in `runRulesLayer`; cross-profile test added |
 | C2 | **Fixed** | `RelClient` sends `{ arguments: args }` |
 | C3 | **Fixed** | Anonymous principal gets `role=service` when auth disabled |
 | H4 | **Fixed** | `steward.py` reads `OLLAMA_BASE_URL` from env |
@@ -31,15 +31,15 @@ JanusPrime is **architecturally coherent, buildable, and remediation-complete** 
 | M2 | **Fixed** | `allow_query_llm_fallback` defaults false; retrieval-only `/query/context` preferred |
 | M3 | **Fixed** | `cli` (15 tests) + `mcp-server` (3 tests) coverage added |
 | M4 | **Fixed** | `doc:rel-state` claude vs grok injection tests in `unified-service.test.ts` |
-| M5 | **Fixed** | `ensureSoulContextRef` unit tests in `context-catalog.test.ts` |
+| M5 | **Fixed** | `ensureClaudeContextRef` unit tests in `context-catalog.test.ts` |
 | M6 | **Fixed** | `python-sandbox-v1` routed in autonomous loop via `PythonSandboxExecutor` |
 | M9 | **Fixed** | Root `.github/workflows/ci.yml` |
 | M11 | **Fixed** | Dual asset strategy: vendored pipeline + `scripts/setup-assetconverter.ps1` sparse clone |
 
 | Layer | Grade | Summary |
 |-------|-------|---------|
-| **Orchestrator (Project-Janus)** | A− | Builds; 131 tests pass; SOUL rules enforced; cli/mcp/python-sandbox covered |
-| **Memory (Smart-Library)** | A− | 81/81 pytest; heal flow SOUL-compliant; compose auth/cache/healthchecks fixed |
+| **Orchestrator (Project-Janus)** | A− | Builds; 131 tests pass; CLAUDE rules enforced; cli/mcp/python-sandbox covered |
+| **Memory (Smart-Library)** | A− | 81/81 pytest; heal flow CLAUDE-compliant; compose auth/cache/healthchecks fixed |
 | **Cognition (REL)** | B+ | Bridge payload/auth fixed; REST allowlist; JSON logging in compose |
 | **Assets (AssetConverter-sparse)** | B+ | Vendored pipeline + documented sparse-clone path; queue operational |
 | **Integration / Ops** | B+ | CI, healthchecks, secrets/observability docs, E2E probes |
@@ -73,7 +73,7 @@ JanusPrime is **architecturally coherent, buildable, and remediation-complete** 
                            │ REST
 ┌──────────────────────────▼──────────────────────────────────┐
 │ JanusPrime Orchestrator — Project-Janus                      │
-│   ✅ SOUL rules enforced; python-sandbox loop; MCP scoped     │
+│   ✅ CLAUDE rules enforced; python-sandbox loop; MCP scoped     │
 └──────┬─────────────────────────────┬────────────────────────┘
        │                             │
        ▼                             ▼
@@ -96,23 +96,23 @@ JanusPrime is **architecturally coherent, buildable, and remediation-complete** 
 
 > **Remediation note:** C1–C3 below were **fixed** on 2026-06-19. Sections retained as audit evidence.
 
-### C1 — SOUL001–004 Never Enforced on Real Profiles — **RESOLVED**
+### C1 — CLAUDE001–004 Never Enforced on Real Profiles — **RESOLVED**
 
 **File:** `Project-Janus/packages/validation-kernel/src/layers/rules.ts`
 
 ```typescript
-let errors: ValidationError[] = runSoulEngineeringRules(context.proposal);
+let errors: ValidationError[] = runClaudeEngineeringRules(context.proposal);
 
 if (profile.id === "neoforge-mixin-v1") {
-  errors = runNeoForgeMixinRules({ ... });  // REPLACES soul errors
+  errors = runNeoForgeMixinRules({ ... });  // REPLACES claude errors
 } else if (profile.id === "typescript-v1") {
-  errors = runTypeScriptRules(...);          // REPLACES soul errors
+  errors = runTypeScriptRules(...);          // REPLACES claude errors
 } else if (profile.id === "asset-audit-v1") {
-  errors = runAssetAuditRules(...);          // REPLACES soul errors
+  errors = runAssetAuditRules(...);          // REPLACES claude errors
 }
 ```
 
-**Impact:** TODOs, hardcoded secrets, `eval`, and suppressions can pass `patch submit` on all production profiles. Violates SOUL §1 and §5. Unit tests pass `runSoulEngineeringRules` in isolation; the pipeline does not.
+**Impact:** TODOs, hardcoded secrets, `eval`, and suppressions can pass `patch submit` on all production profiles. Violates CLAUDE §1 and §5. Unit tests pass `runClaudeEngineeringRules` in isolation; the pipeline does not.
 
 **Fix:** Concatenate: `errors = [...errors, ...runNeoForgeMixinRules(...)]`. Add cross-profile integration tests.
 
@@ -151,7 +151,7 @@ When `REL_API_AUTH_REQUIRED=false`, principal is `role=anonymous`, but tool rout
 | H3 | Docker | HF cache volume misconfigured (`/app/.hf_cache` vs `/root/.cache/huggingface`) |
 | H4 | Docker | `steward.py` hardcodes `localhost:11434`; ignores compose `OLLAMA_BASE_URL` |
 | H5 | Config | Duplicate `workloads/omni32/manifest.json` at workspace root missing `local_root` |
-| H6 | CLI | SOUL §9 says `janus status`; requires `aether janus status` or `node .../bin.js janus status` |
+| H6 | CLI | CLAUDE §9 says `janus status`; requires `aether janus status` or `node .../bin.js janus status` |
 | H7 | Security | REL compose defaults: weak passwords, auth disabled |
 
 ---
@@ -166,9 +166,9 @@ When `REL_API_AUTH_REQUIRED=false`, principal is `role=anonymous`, but tool rout
 | M2 | Integration | `queryContextSlices` LLM fallback | **Fixed** — gated, default off |
 | M3 | Tests | Zero tests for `cli` and `mcp-server` | **Fixed** — 18 tests |
 | M4 | Tests | `doc:rel-state` claude vs grok injection | **Fixed** |
-| M5 | Tests | `ensureSoulContextRef` unit tests | **Fixed** |
+| M5 | Tests | `ensureClaudeContextRef` unit tests | **Fixed** |
 | M6 | Profile | `python-sandbox-v1` in autonomous loop | **Fixed** — `PythonSandboxExecutor` |
-| M7 | Docs | SOUL §9 bootstrap path | **Fixed** |
+| M7 | Docs | CLAUDE §9 bootstrap path | **Fixed** |
 | M8 | Docs | `.aether/` path in architecture doc | **Fixed** |
 | M9 | CI | No root `.github/workflows` | **Fixed** |
 | M10 | REL | `pyproject.toml` packaging | **Fixed** |
@@ -192,14 +192,14 @@ When `REL_API_AUTH_REQUIRED=false`, principal is `role=anonymous`, but tool rout
 
 ### Orchestration
 - Autonomous loop: identity / manual / asset paths
-- Manual patch executor: staged patches, SOUL auto-repair, pending-apply
-- `ensureSoulContextRef` on task create
-- Context catalog: `doc:soul`, `doc:rel-state`, `arch:janus-unified`
+- Manual patch executor: staged patches, CLAUDE auto-repair, pending-apply
+- `ensureClaudeContextRef` on task create
+- Context catalog: `doc:claude`, `doc:rel-state`, `arch:janus-unified`
 - MCP: doctrine, status, memory, assets, rel state, task brief/repair
 
 ### Memory (Smart-Library)
 - Endpoints: `/health`, `/seed`, `/seed-repair`, `/query/context`, `/doctrine/status`, `/execute-heal`, `/maintenance/deduplicate`
-- Heal: patches stored only after verified retry (SOUL §6)
+- Heal: patches stored only after verified retry (CLAUDE §6)
 - Sandbox: Docker isolation, fail-closed in compose
 
 ### REL Bridge (Design)
@@ -234,7 +234,7 @@ When `REL_API_AUTH_REQUIRED=false`, principal is `role=anonymous`, but tool rout
 ### Smart-Library
 
 - **Tests:** 81/81 pytest
-- **SOUL §6:** Compliant — verified heal write-back only after retry
+- **CLAUDE §6:** Compliant — verified heal write-back only after retry
 - **Gaps:** Query payload size limits (low priority); metrics endpoint deferred per [observability.md](./observability.md)
 
 ### REL
@@ -257,7 +257,7 @@ When `REL_API_AUTH_REQUIRED=false`, principal is `role=anonymous`, but tool rout
 | memory | `Smart-Library` | ✅ |
 | assets | `AssetConverter-sparse` | ✅ |
 | cognition | `C:/REL_Codex_Variant` | ✅ |
-| doctrine | `SOUL.md` | ✅ |
+| doctrine | `CLAUDE.md` | ✅ |
 | runtime `.aether` | `Project-Janus/.aether` | ❌ (created on first run) |
 
 ---
@@ -269,7 +269,7 @@ When `REL_API_AUTH_REQUIRED=false`, principal is `role=anonymous`, but tool rout
 | Unified CI/CD | ✅ `.github/workflows/ci.yml` (Project-Janus + Smart-Library) |
 | Secrets management | ✅ [secrets-management.md](./secrets-management.md) + `.env.example` |
 | Service healthchecks | ✅ `docker-compose.yml` — ollama, memory, cognition |
-| SOUL validation enforced | ✅ C1 fixed; cross-profile tests |
+| CLAUDE validation enforced | ✅ C1 fixed; cross-profile tests |
 | REL bridge functional | ✅ C2, C3, H1; `e2e:services` PASS with stack up |
 | Memory auth in stack | ✅ H2 fixed (optional key via `.env`) |
 | E2E orchestration tested | ✅ `e2e:orchestration`, `e2e:services`, `e2e:loop-smoke` |
@@ -284,7 +284,7 @@ When `REL_API_AUTH_REQUIRED=false`, principal is `role=anonymous`, but tool rout
 See [audit-remediation-todo.md](./audit-remediation-todo.md) for tracked execution status.
 
 ### P0 — Critical (do first)
-- [x] **C1** Fix `runRulesLayer` to concatenate SOUL errors with profile rules + integration tests
+- [x] **C1** Fix `runRulesLayer` to concatenate CLAUDE errors with profile rules + integration tests
 - [x] **C2** Fix `RelClient.invokeTool` to send `{ arguments: args }` + update tests
 - [x] **C3** Fix REL REST anonymous auth when `REL_API_AUTH_REQUIRED=false`
 
@@ -302,9 +302,9 @@ See [audit-remediation-todo.md](./audit-remediation-todo.md) for tracked executi
 - [x] **M2** Gate LLM fallback in `queryContextSlices` (`allow_query_llm_fallback`)
 - [x] **M3** Tests for `cli` and `mcp-server`
 - [x] **M4** Test `doc:rel-state` claude vs grok injection
-- [x] **M5** Unit test `ensureSoulContextRef`
+- [x] **M5** Unit test `ensureClaudeContextRef`
 - [x] **M6** Wire `python-sandbox-v1` in autonomous loop
-- [x] **M7–M8** Doc path and layout sync (SOUL §9, AGENTS.md, architecture)
+- [x] **M7–M8** Doc path and layout sync (CLAUDE §9, AGENTS.md, architecture)
 - [x] **M9** Root `.github/workflows/ci.yml`
 - [x] **M10** Fix REL `pyproject.toml` packaging
 - [x] **M11** Document vendored + sparse-clone asset strategy
@@ -370,6 +370,6 @@ Tracked in [audit-remediation-todo.md](./audit-remediation-todo.md).
 
 ## Bottom Line
 
-JanusPrime has **real architectural substance** and **audit remediation is complete** for P0–P3: validation gate enforces SOUL rules, REL bridge is functional with allowlist + scoped MCP, memory heal contract holds, asset pipeline strategy is documented, and ops scaffolding (CI, healthchecks, secrets/observability docs, E2E probes) is in place.
+JanusPrime has **real architectural substance** and **audit remediation is complete** for P0–P3: validation gate enforces CLAUDE rules, REL bridge is functional with allowlist + scoped MCP, memory heal contract holds, asset pipeline strategy is documented, and ops scaffolding (CI, healthchecks, secrets/observability docs, E2E probes) is in place.
 
 **Remaining work:** Phase 4 Theia IDE implementation (deferred; scaffold at [phase4-theia-ide.md](./phase4-theia-ide.md)); REL full-suite CI in separate repo; future metrics endpoint per [observability.md](./observability.md).

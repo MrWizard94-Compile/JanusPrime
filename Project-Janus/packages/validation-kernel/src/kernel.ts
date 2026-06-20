@@ -66,12 +66,12 @@ export class ValidationKernel {
       );
 
       if (!result.passed || !options.persistOnPass) {
-        await revertWorkspace(options.workspaceRoot);
+        await revertWorkspace(options.workspaceRoot, options.proposal);
       }
 
       return result;
     } catch (error) {
-      await revertWorkspace(options.workspaceRoot);
+      await revertWorkspace(options.workspaceRoot, options.proposal);
       throw error;
     }
   }

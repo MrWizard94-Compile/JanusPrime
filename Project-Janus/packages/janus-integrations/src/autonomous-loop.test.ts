@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Task } from "@aether/shared";
 import { OrchestratorService } from "@aether/orchestrator";
@@ -7,6 +8,8 @@ import { PythonSandboxExecutor } from "./python-sandbox-executor.js";
 import { JanusUnifiedService } from "./unified-service.js";
 import { RelBridge } from "./rel-bridge.js";
 
+const projectJanusRoot = join(import.meta.dirname, "../../..");
+
 const pythonChild: Task = {
   id: "child-python-1",
   parent_id: "parent-1",
@@ -14,7 +17,7 @@ const pythonChild: Task = {
   workload: null,
   status: "pending",
   assignee: "grok",
-  context_refs: ["doc:soul"],
+  context_refs: ["doc:claude"],
   spec: {
     objective: "Validate python script",
     constraints: [],
@@ -30,9 +33,7 @@ const pythonChild: Task = {
 
 describe("autonomous loop config", () => {
   it("loads self_repair limits from janus.config.json", async () => {
-    const { config } = await loadJanusConfig(
-      "C:\\Users\\Bulkl\\OneDrive\\Desktop\\Janus\\Project-Janus",
-    );
+    const { config } = await loadJanusConfig(projectJanusRoot);
     expect(config.self_repair.max_validation_retries).toBeGreaterThan(0);
     expect(config.self_repair.seed_on_accept).toBe(true);
   });
@@ -44,9 +45,7 @@ describe("JanusAutonomousLoop python-sandbox routing", () => {
   });
 
   it("routes python-sandbox-v1 children to PythonSandboxExecutor", async () => {
-    const { root, config } = await loadJanusConfig(
-      "C:\\Users\\Bulkl\\OneDrive\\Desktop\\Janus\\Project-Janus",
-    );
+    const { root, config } = await loadJanusConfig(projectJanusRoot);
 
     const executeSpy = vi.spyOn(PythonSandboxExecutor.prototype, "execute").mockResolvedValue({
       task_id: pythonChild.id,

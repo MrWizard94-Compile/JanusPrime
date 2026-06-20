@@ -1,0 +1,82 @@
+﻿{
+  "parent": {
+    "assignee": "claude",
+    "validation_profile": "typescript-v1",
+    "context_refs": ["doc:claude", "arch:janus-unified", "doc:handoff-protocol"],
+    "spec": {
+      "objective": "Node Core phase 6 — dead world, AdLods bridge, lush-only growth (re-implement after rogue wipe)",
+      "constraints": [
+        "All mutations via manual patch_mode through forge-mod-v1 gate",
+        "Reference instance overrides in packs/base-wars-instance-overrides/",
+        "No @SuppressWarnings — fix root causes per CLAUDE §1.7"
+      ],
+      "files_in_scope": [],
+      "acceptance_criteria": [
+        "Dead world biome strip active on new worlds",
+        "AdLods deposits sync to node registry",
+        "gradlew build passes",
+        "All children accepted and seeded"
+      ]
+    }
+  },
+  "children": [
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude", "doc:handoff-protocol"],
+        "spec": {
+          "objective": "AdLods bridge — sync WorldTargets.generated to node registry; fix mod id adlods",
+          "files_in_scope": [
+            "src/main/java/com/mrwizard94/nodecore/integration/",
+            "src/main/java/com/mrwizard94/nodecore/event/NodeAdlodsSyncHandler.java",
+            "src/main/java/com/mrwizard94/nodecore/worldgen/NodeLodBridge.java"
+          ],
+          "constraints": ["No reflection suppressions", "Optional AdLods — soft bridge when absent"],
+          "acceptance_criteria": ["gradlew build exits 0", "Task accepted"]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude", "doc:handoff-protocol"],
+        "spec": {
+          "objective": "Dead world — biome modifier strip, lush-only growth, surface sterility gate",
+          "files_in_scope": [
+            "src/main/java/com/mrwizard94/nodecore/worldgen/DeadWorldBiomeModifier.java",
+            "src/main/java/com/mrwizard94/nodecore/event/DeadWorldGrowthHandler.java",
+            "src/main/java/com/mrwizard94/nodecore/config/NodeCoreConfig.java",
+            "src/main/resources/data/nodecore/forge/"
+          ],
+          "constraints": ["Config section [deadWorld]", "New chunks only for biome strip"],
+          "acceptance_criteria": ["gradlew build exits 0", "Task accepted"]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "omni32-loader",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude", "doc:handoff-protocol"],
+        "spec": {
+          "objective": "Omni32 Loader — pack.mcmeta root resource + metadata section for ResourcePackInfo",
+          "files_in_scope": [
+            "src/main/java/com/mrwizard94/omni32loader/pack/Omni32PackResources.java",
+            "src/main/resources/pack.mcmeta"
+          ],
+          "constraints": ["No empty catch blocks hiding errors", "Fix ResourceLocation deprecation"],
+          "acceptance_criteria": ["gradlew build exits 0", "No pack.mcmeta warning at runtime"]
+        }
+      }
+    }
+  ],
+  "provision": { "auto_worktree": true, "auto_prepare": true }
+}

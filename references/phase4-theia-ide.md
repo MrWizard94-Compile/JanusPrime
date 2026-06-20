@@ -1,7 +1,7 @@
-# Phase 4 — Theia IDE Integration (Scaffold)
+﻿# Phase 4 — Theia IDE Integration (Scaffold)
 
 **Status:** Deferred — architecture outline only; no IDE implementation in this repo yet.  
-**Source:** [SOUL.md §10](../SOUL.md) (Proposed Evolutions), [AETHER_ARCHITECTURE.md](../Project-Janus/AETHER_ARCHITECTURE.md) (Phase 2 — Theia Integration)
+**Source:** [CLAUDE.md §10](../CLAUDE.md) (Proposed Evolutions), [AETHER_ARCHITECTURE.md](../Project-Janus/AETHER_ARCHITECTURE.md) (Phase 2 — Theia Integration)
 
 ---
 
@@ -15,7 +15,7 @@ Today, agents use:
 - Task-scoped MCP (`@aether/mcp-server`) for doctrine, brief, repair, and memory query
 - Validation Kernel receipts in `Project-Janus/.aether/`
 
-Phase 4 wraps those same contracts in Theia views and editors without changing SOUL invariants.
+Phase 4 wraps those same contracts in Theia views and editors without changing CLAUDE invariants.
 
 ---
 
@@ -54,11 +54,11 @@ Phase 4 wraps those same contracts in Theia views and editors without changing S
 | Behavior | Today (pre-Theia) | Phase 4 target |
 |----------|-------------------|----------------|
 | Patch proposals | `patch submit` → kernel → accept/reject | Same pipeline; UI shows diff + rule IDs before apply |
-| Task context | `janus brief`, `doc:soul`, `doc:rel-state` | Side panel bound to `janus://task/<id>/brief` |
-| Doctrine | `janus://doctrine/soul` MCP resource | Pinned SOUL excerpt with freshness indicator |
+| Task context | `janus brief`, `doc:claude`, `doc:rel-state` | Side panel bound to `janus://task/<id>/brief` |
+| Doctrine | `janus://doctrine/claude` MCP resource | Pinned CLAUDE excerpt with freshness indicator |
 | Acceptance | Orchestrator `accepted` status in queue | Explicit “release to filesystem” action in Ghost Buffer |
 
-**Invariant (SOUL §1, §5):** Nothing reaches disk without passing validation — Ghost Buffer is a **UI affordance** over the existing gate, not a bypass.
+**Invariant (CLAUDE §1, §5):** Nothing reaches disk without passing validation — Ghost Buffer is a **UI affordance** over the existing gate, not a bypass.
 
 ---
 
@@ -73,7 +73,7 @@ Phase 4 wraps those same contracts in Theia views and editors without changing S
 | Parallel work | Git worktrees per task | Theia multi-root / worktree-aware file tree |
 | MCP binding | `AETHER_TASK_ID` scopes MCP server | Theia session binds one task id per executor panel |
 
-**Invariant (SOUL §3):** Executors never receive full SOUL + architecture dumps — Phantom Cursor panels consume the same capped brief JSON the CLI produces today.
+**Invariant (CLAUDE §3):** Executors never receive full CLAUDE + architecture dumps — Phantom Cursor panels consume the same capped brief JSON the CLI produces today.
 
 ---
 
@@ -91,7 +91,7 @@ Phase 4 wraps those same contracts in Theia views and editors without changing S
 
 Planned widgets:
 
-1. **Rule timeline** — SOUL001–004 + profile rules with pass/fail and suggestions  
+1. **Rule timeline** — CLAUDE001–004 + profile rules with pass/fail and suggestions  
 2. **Receipt inspector** — JSON receipt linked to git worktree path  
 3. **Loop progress** — parent/child rollup from autonomous loop  
 4. **Asset gate** — Omni32 queue status via `janus://assets/queue`
@@ -125,11 +125,11 @@ The following are **explicitly out of scope** until Phase 4 engineering starts:
 
 | Doc | Relevance |
 |-----|-----------|
-| [SOUL.md §10](../SOUL.md) | Roadmap checkbox — Phase 4 Theia IDE |
+| [CLAUDE.md §10](../CLAUDE.md) | Roadmap checkbox — Phase 4 Theia IDE |
 | [unified-architecture.md](./unified-architecture.md) | Component map and MCP resource table |
 | [AETHER_ARCHITECTURE.md](../Project-Janus/AETHER_ARCHITECTURE.md) | Original Ghost Buffer / Phantom Cursor diagram |
 | [observability.md](./observability.md) | Operational probes until Dashboard exists |
 
 ---
 
-*This scaffold satisfies audit Phase 4 documentation debt. Implementation remains deferred per SOUL §10.*
+*This scaffold satisfies audit Phase 4 documentation debt. Implementation remains deferred per CLAUDE §10.*

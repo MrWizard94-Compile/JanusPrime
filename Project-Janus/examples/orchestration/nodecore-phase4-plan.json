@@ -1,10 +1,10 @@
-{
+﻿{
   "parent": {
     "assignee": "claude",
     "workload": null,
     "validation_profile": "typescript-v1",
     "context_refs": [
-      "doc:soul",
+      "doc:claude",
       "arch:janus-unified",
       "doc:handoff-protocol"
     ],
@@ -31,7 +31,7 @@
         "workload": "nodecore",
         "validation_profile": "neoforge-mixin-v1",
         "context_refs": [
-          "doc:soul",
+          "doc:claude",
           "doc:handoff-protocol"
         ],
         "spec": {
@@ -58,7 +58,7 @@
         "workload": "nodecore",
         "validation_profile": "asset-audit-v1",
         "context_refs": [
-          "doc:soul",
+          "doc:claude",
           "asset:mod:nodecore",
           "asset:action:run"
         ],

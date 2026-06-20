@@ -1,7 +1,6 @@
 import type { Task, TaskStatus } from "@aether/shared";
 import { OrchestratorService, parsePatchMode } from "@aether/orchestrator";
 import type { JanusConfig } from "./config.js";
-import { resolveOrchestratorRoot } from "./config.js";
 import { AssetTaskExecutor, type AssetTaskResult } from "./asset-task-executor.js";
 import { ManualPatchExecutor } from "./manual-patch-executor.js";
 import {
@@ -45,8 +44,7 @@ export class JanusAutonomousLoop {
 
   constructor(janusRoot: string, config: JanusConfig) {
     this.config = config;
-    const orchestratorRoot = resolveOrchestratorRoot(janusRoot, config);
-    this.orchestrator = new OrchestratorService(orchestratorRoot);
+    this.orchestrator = new OrchestratorService(janusRoot);
     this.unified = new JanusUnifiedService(janusRoot, config);
     this.assets = new AssetTaskExecutor(janusRoot, config);
     this.pythonSandbox = new PythonSandboxExecutor(janusRoot, config);

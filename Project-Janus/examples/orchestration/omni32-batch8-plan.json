@@ -1,0 +1,45 @@
+{
+  "parent": {
+    "assignee": "claude",
+    "validation_profile": "typescript-v1",
+    "context_refs": ["doc:claude", "arch:janus-unified", "doc:handoff-protocol"],
+    "spec": {
+      "objective": "Omni32 batch-8 — Base Wars gap mods + Macaw's/easy_villagers expansion",
+      "constraints": [
+        "Prefer Base Wars instance mods with 10+ source textures",
+        "Upscale via janus assets run; registry in AssetConverter",
+        "JAR_ONLY or MODRINTH_JAR_MODS for closed-source Macaw's"
+      ],
+      "files_in_scope": [],
+      "acceptance_criteria": [
+        "5+ new namespaces upscaled and pack rebuilt",
+        "Queue pending drained for batch-8 entries"
+      ]
+    }
+  },
+  "children": [
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "omni32",
+        "validation_profile": "asset-audit-v1",
+        "context_refs": ["doc:claude", "asset:action:run"],
+        "spec": {
+          "objective": "Register and upscale batch-8: lootr, mutantmonsters, vanillaaiots, easy_villagers, farming_for_blockheads, macawstrapdoors",
+          "constraints": ["Use MODRINTH_JAR_MODS for closed-source Macaw's mods"],
+          "files_in_scope": [
+            "config/registry.py",
+            "pipeline/queue.py",
+            "docs/MOD_QUEUE.md"
+          ],
+          "acceptance_criteria": [
+            "janus assets queue shows batch-8 pending then done",
+            "janus assets build exits 0"
+          ]
+        }
+      }
+    }
+  ],
+  "provision": { "auto_worktree": true, "auto_prepare": true }
+}

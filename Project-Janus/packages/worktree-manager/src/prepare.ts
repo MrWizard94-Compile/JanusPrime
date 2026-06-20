@@ -1,4 +1,4 @@
-import { access } from "node:fs/promises";
+import { access, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
 
@@ -32,13 +32,19 @@ export async function prepareWorktreeDependencies(
     };
   }
 
-  const packageJsonPath = join(workspaceRoot, "package.json");
+  // The pnpm workspace manifest may live one level below the git/worktree root
+  // (nested monorepo: JanusPrime's workspace is under Project-Janus/). Resolve
+  // the directory that actually owns the lockfile/workspace before installing,
+  // otherwise `pnpm install` runs against an empty root and dependencies never
+  // land where the build command needs them.
+  const pnpmRoot = await resolvePnpmRoot(workspaceRoot);
+  const packageJsonPath = join(pnpmRoot, "package.json");
 
   try {
     await access(packageJsonPath);
   } catch {
     return {
-      workspace_root: workspaceRoot,
+      workspace_root: pnpmRoot,
       commands: [],
       exit_code: 0,
       skipped: true,
@@ -49,7 +55,7 @@ export async function prepareWorktreeDependencies(
   let lastExitCode = 0;
 
   for (const command of commands) {
-    const result = await runShellCommand(workspaceRoot, command);
+    const result = await runShellCommand(pnpmRoot, command);
     lastExitCode = result.exitCode;
 
     if (result.exitCode !== 0) {
@@ -61,11 +67,50 @@ export async function prepareWorktreeDependencies(
   }
 
   return {
-    workspace_root: workspaceRoot,
+    workspace_root: pnpmRoot,
     commands,
     exit_code: lastExitCode,
     skipped: false,
   };
+}
+
+async function resolvePnpmRoot(workspaceRoot: string): Promise<string> {
+  if (await hasPnpmManifest(workspaceRoot)) {
+    return workspaceRoot;
+  }
+
+  try {
+    const entries = await readdir(workspaceRoot, { withFileTypes: true });
+    for (const entry of entries) {
+      if (
+        !entry.isDirectory() ||
+        entry.name === "node_modules" ||
+        entry.name.startsWith(".")
+      ) {
+        continue;
+      }
+      const candidate = join(workspaceRoot, entry.name);
+      if (await hasPnpmManifest(candidate)) {
+        return candidate;
+      }
+    }
+  } catch {
+    // Unreadable directory — fall back to the workspace root.
+  }
+
+  return workspaceRoot;
+}
+
+async function hasPnpmManifest(dir: string): Promise<boolean> {
+  for (const manifest of ["pnpm-workspace.yaml", "pnpm-lock.yaml"]) {
+    try {
+      await access(join(dir, manifest));
+      return true;
+    } catch {
+      // Try the next manifest marker.
+    }
+  }
+  return false;
 }
 
 async function findGradleWrapper(workspaceRoot: string): Promise<string | null> {

@@ -4,22 +4,21 @@ import { tmpdir } from "node:os";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { expandConfigPath, findJanusRoot, loadEnvFile, loadJanusConfig } from "./config.js";
 
+const projectJanusRoot = join(import.meta.dirname, "../../..");
+const janusRoot = join(import.meta.dirname, "../../../..");
+
 describe("janus config", () => {
   it("finds janus.config.json from Project-Janus subdirectory", async () => {
-    const root = await findJanusRoot(
-      "C:\\Users\\Bulkl\\OneDrive\\Desktop\\Janus\\Project-Janus\\packages\\janus-integrations",
-    );
+    const root = await findJanusRoot(join(projectJanusRoot, "packages/janus-integrations"));
     expect(root).toContain("Janus");
   });
 
   it("loads and parses config", async () => {
-    const { config } = await loadJanusConfig(
-      "C:\\Users\\Bulkl\\OneDrive\\Desktop\\Janus\\Project-Janus",
-    );
+    const { config } = await loadJanusConfig(projectJanusRoot);
     expect(config.name).toBe("janusprime");
     expect(config.components.memory.url).toBe("http://localhost:8000");
     expect(config.components.assets.root).toBe("../../../../../Projects/AssetConverter");
-    expect(config.doctrine.soul_path).toBe("SOUL.md");
+    expect(config.doctrine.claude_path).toBe("CLAUDE.md");
     expect(config.doctrine.inject_into_brief).toBe(true);
     expect(config.components.cognition?.root).toBe("env:REL_COGNITION_ROOT");
   });

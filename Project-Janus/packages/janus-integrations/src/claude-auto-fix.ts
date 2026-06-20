@@ -13,7 +13,7 @@ const CHILD_PROCESS_IMPORT =
 const CHILD_PROCESS_REQUIRE =
   /(?:const|let|var)\s+\w+\s*=\s*require\s*\(\s*['"]child_process['"]\s*\);?\s*\r?\n?/g;
 
-export function applySoulAutoFixes(
+export function applyClaudeAutoFixes(
   content: string,
   errors: readonly ValidationError[],
 ): string {
@@ -27,7 +27,7 @@ export function applySoulAutoFixes(
 
   let fixed = content;
 
-  if (rules.has("SOUL001")) {
+  if (rules.has("CLAUDE001")) {
     fixed = fixed.replace(PLACEHOLDER_WORDS, (match) => {
       const normalized = match.toLowerCase();
       if (normalized === "not implemented") {
@@ -37,19 +37,19 @@ export function applySoulAutoFixes(
     });
   }
 
-  if (rules.has("SOUL002")) {
+  if (rules.has("CLAUDE002")) {
     fixed = fixed.replace(SUPPRESSION_LINE, "");
     fixed = fixed.replace(SUPPRESSION_ANNOTATION, "");
   }
 
-  if (rules.has("SOUL003")) {
+  if (rules.has("CLAUDE003")) {
     fixed = fixed.replace(
       HARDCODED_SECRET,
       (_match, prefix: string) => `${prefix}process.env.SECRET_VALUE ?? ""`,
     );
   }
 
-  if (rules.has("SOUL004")) {
+  if (rules.has("CLAUDE004")) {
     fixed = fixed.replace(DYNAMIC_EXEC, "/* removed eval */");
     fixed = fixed.replace(NEW_FUNCTION, "/* removed Function */");
     fixed = fixed.replace(CHILD_PROCESS_IMPORT, "");
@@ -59,7 +59,7 @@ export function applySoulAutoFixes(
   return fixed;
 }
 
-export function applySoulAutoFixesToFiles(
+export function applyClaudeAutoFixesToFiles(
   files: Array<{ path: string; content: string }>,
   errors: readonly ValidationError[],
 ): Array<{ path: string; content: string }> {
@@ -69,7 +69,7 @@ export function applySoulAutoFixesToFiles(
 
     return {
       path: file.path,
-      content: applySoulAutoFixes(file.content, relevantErrors),
+      content: applyClaudeAutoFixes(file.content, relevantErrors),
     };
   });
 }

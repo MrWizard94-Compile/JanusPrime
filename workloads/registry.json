@@ -31,10 +31,18 @@
       "status": "canonical"
     },
     {
+      "id": "omni32-loader",
+      "description": "Omni32 Loader — Forge client resource pack loader for Base Wars 32x textures",
+      "local_root": "../../../../../Projects/Omni32_Loader",
+      "validation_profile": "forge-mod-v1",
+      "category": "base-wars",
+      "status": "active"
+    },
+    {
       "id": "nodecore",
       "description": "Base Wars Node Core — ore/lush nodes, surface sterility, extraction alerts (Forge 1.20.1)",
       "local_root": "../../../../../Projects/Node Core",
-      "validation_profile": "neoforge-mixin-v1",
+      "validation_profile": "forge-mod-v1",
       "category": "base-wars",
       "status": "active"
     },

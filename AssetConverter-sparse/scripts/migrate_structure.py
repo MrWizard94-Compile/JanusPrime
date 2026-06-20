@@ -1,4 +1,4 @@
-"""One-time migration: move mod clones to sources/, data files to data/, strip nested .git."""
+﻿"""One-time migration: move mod clones to sources/, data files to data/, strip nested .git."""
 import os
 import shutil
 import sys
@@ -23,7 +23,7 @@ KEEP_DIRS = {
 KEEP_FILES = {
     ".gitignore",
     ".gitattributes",
-    "SOUL.md",
+    "CLAUDE.md",
     "README.md",
 }
 

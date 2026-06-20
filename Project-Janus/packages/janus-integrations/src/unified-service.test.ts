@@ -22,32 +22,32 @@ describe("selectCatalogContextRefs", () => {
     expect(
       selectCatalogContextRefs(
         ["doc:handoff-protocol", "unknown:ref", "ref:neoforged"],
-        { skipSoulDuplicate: false },
+        { skipClaudeDuplicate: false },
       ),
     ).toEqual(["doc:handoff-protocol", "ref:neoforged"]);
   });
 
-  it("skips doc:soul when soul doctrine is already included", () => {
+  it("skips doc:claude when claude doctrine is already included", () => {
     expect(
       selectCatalogContextRefs(
-        ["doc:soul", "doc:handoff-protocol"],
-        { skipSoulDuplicate: true },
+        ["doc:claude", "doc:handoff-protocol"],
+        { skipClaudeDuplicate: true },
       ),
     ).toEqual(["doc:handoff-protocol"]);
   });
 
-  it("keeps doc:soul when soul doctrine is not included", () => {
+  it("keeps doc:claude when claude doctrine is not included", () => {
     expect(
-      selectCatalogContextRefs(["doc:soul", "doc:handoff-protocol"], {
-        skipSoulDuplicate: false,
+      selectCatalogContextRefs(["doc:claude", "doc:handoff-protocol"], {
+        skipClaudeDuplicate: false,
       }),
-    ).toEqual(["doc:soul", "doc:handoff-protocol"]);
+    ).toEqual(["doc:claude", "doc:handoff-protocol"]);
   });
 
   it("skips doc:rel-state because it is resolved dynamically", () => {
     expect(
       selectCatalogContextRefs(["doc:rel-state", "doc:handoff-protocol"], {
-        skipSoulDuplicate: false,
+        skipClaudeDuplicate: false,
       }),
     ).toEqual(["doc:handoff-protocol"]);
   });
@@ -63,32 +63,32 @@ describe("enforceBriefBudget", () => {
     constraints: ["Keep tests green"],
     validation_profile: "typescript-v1",
     context_refs: [] as string[],
-    doctrine_ref: "doc:soul" as const,
+    doctrine_ref: "doc:claude" as const,
     token_estimate_chars: 0,
   };
 
-  it("truncates huge soul_doctrine to fit brief_max_chars", () => {
-    const hugeSoul = "soul-".repeat(5000);
+  it("truncates huge claude_doctrine to fit brief_max_chars", () => {
+    const hugeClaude = "claude-".repeat(5000);
     const unified = enforceBriefBudget(
       {
         ...baseBrief,
-        soul_doctrine: hugeSoul,
-        token_estimate_chars: hugeSoul.length,
+        claude_doctrine: hugeClaude,
+        token_estimate_chars: hugeClaude.length,
       },
       500,
     );
 
     expect(measureBriefContentChars(unified)).toBeLessThanOrEqual(500);
     expect(unified.token_estimate_chars).toBe(measureBriefContentChars(unified));
-    expect(unified.soul_doctrine?.length ?? 0).toBeLessThan(hugeSoul.length);
+    expect(unified.claude_doctrine?.length ?? 0).toBeLessThan(hugeClaude.length);
     expect(unified.objective).toBe("Ship the feature");
   });
 
-  it("preserves base brief fields before truncating soul_doctrine", () => {
+  it("preserves base brief fields before truncating claude_doctrine", () => {
     const unified = enforceBriefBudget(
       {
         ...baseBrief,
-        soul_doctrine: "x".repeat(1000),
+        claude_doctrine: "x".repeat(1000),
         memory_context: ["memory-".repeat(200)],
         resolved_context: [{ ref: "doc:handoff-protocol", excerpt: "resolved-".repeat(200) }],
       },
@@ -99,7 +99,7 @@ describe("enforceBriefBudget", () => {
     expect(unified.memory_context).toBeUndefined();
     expect(unified.resolved_context).toBeUndefined();
     expect(unified.objective).toBe("Ship the feature");
-    expect(unified.soul_doctrine?.length ?? 0).toBeLessThan(1000);
+    expect(unified.claude_doctrine?.length ?? 0).toBeLessThan(1000);
   });
 });
 
@@ -169,7 +169,7 @@ describe("JanusUnifiedService context resolution", () => {
       rel_context_max_chars: 800,
     },
     doctrine: {
-      soul_path: "SOUL.md",
+      claude_path: "CLAUDE.md",
       inject_into_brief: true,
       inject_into_mcp_instructions: true,
       seed_on_boot: false,
@@ -189,7 +189,7 @@ describe("JanusUnifiedService context resolution", () => {
 
     await mkdir(join(orchestratorRoot, "docs/phase0"), { recursive: true });
     await writeFile(join(orchestratorRoot, "docs/phase0/handoff-protocol.md"), handoffSource, "utf8");
-    await writeFile(join(janusRoot, "SOUL.md"), "# Test Soul\nValidation before mutation\n", "utf8");
+    await writeFile(join(janusRoot, "CLAUDE.md"), "# Test Claude\nValidation before mutation\n", "utf8");
     await writeFile(join(janusRoot, "janus.config.json"), JSON.stringify(baseConfig, null, 2), "utf8");
     vi.spyOn(MemoryClient.prototype, "queryContextSlices").mockResolvedValue([]);
     vi.spyOn(OrchestratorService.prototype, "buildExecutorBrief").mockImplementation(
@@ -229,25 +229,25 @@ describe("JanusUnifiedService context resolution", () => {
     expect(brief.resolved_context).toHaveLength(1);
     expect(brief.resolved_context?.[0]?.ref).toBe("doc:handoff-protocol");
     expect(brief.resolved_context?.[0]?.excerpt).toContain("Phase 0 Handoff Protocol");
-    expect(brief.soul_doctrine).toContain("Validation before mutation");
+    expect(brief.claude_doctrine).toContain("Validation before mutation");
   });
 
-  it("buildUnifiedBrief skips doc:soul when soul doctrine is injected", async () => {
+  it("buildUnifiedBrief skips doc:claude when claude doctrine is injected", async () => {
     const service = new JanusUnifiedService(janusRoot, baseConfig);
     vi.mocked(OrchestratorService.prototype.buildExecutorBrief).mockResolvedValueOnce({
       task_id: "task-test-2",
       assignee: "grok",
       workspace_root: orchestratorRoot,
       files_in_scope: ["README.md"],
-      objective: "Avoid duplicate soul context",
+      objective: "Avoid duplicate claude context",
       constraints: [],
       validation_profile: "typescript-v1",
-      context_refs: ["doc:soul", "doc:handoff-protocol"],
+      context_refs: ["doc:claude", "doc:handoff-protocol"],
     });
 
     const brief = await service.buildUnifiedBrief("task-test-2");
 
-    expect(brief.soul_doctrine).toBeDefined();
+    expect(brief.claude_doctrine).toBeDefined();
     expect(brief.resolved_context?.map((item) => item.ref)).toEqual(["doc:handoff-protocol"]);
   });
 
@@ -265,8 +265,8 @@ describe("JanusUnifiedService context resolution", () => {
     };
 
     await writeFile(
-      join(janusRoot, "SOUL.md"),
-      `# Test Soul\n${"Validation before mutation. ".repeat(400)}\n`,
+      join(janusRoot, "CLAUDE.md"),
+      `# Test Claude\n${"Validation before mutation. ".repeat(400)}\n`,
       "utf8",
     );
     await writeFile(join(janusRoot, "janus.config.json"), JSON.stringify(tightConfig, null, 2), "utf8");
@@ -276,11 +276,11 @@ describe("JanusUnifiedService context resolution", () => {
 
     expect(measureBriefContentChars(brief)).toBeLessThanOrEqual(200);
     expect(brief.token_estimate_chars).toBe(measureBriefContentChars(brief));
-    expect(brief.soul_doctrine?.length ?? 0).toBeLessThan(10000);
+    expect(brief.claude_doctrine?.length ?? 0).toBeLessThan(10000);
   });
 
   it("buildRepairContext includes top resolved catalog ref", async () => {
-    const queue = new TaskQueue(orchestratorRoot);
+    const queue = new TaskQueue(janusRoot);
     const task = await queue.create({
       assignee: "grok",
       worktree: "test-wt",
@@ -359,7 +359,7 @@ describe("JanusUnifiedService doc:rel-state injection", () => {
       rel_context_max_chars: 800,
     },
     doctrine: {
-      soul_path: "SOUL.md",
+      claude_path: "CLAUDE.md",
       inject_into_brief: false,
       inject_into_mcp_instructions: false,
       seed_on_boot: false,
