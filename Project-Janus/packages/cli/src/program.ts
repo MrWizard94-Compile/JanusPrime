@@ -118,26 +118,38 @@ export function buildProgram(cliName: "janus" | "aether" = "aether"): Command {
     .requiredOption("-t, --task <taskId>", "Task identifier")
     .option("-b, --base <branch>", "Base branch")
     .option("-w, --workload <id>", "Workload whose cloned repo owns the worktree")
-    .action(async (options: { task: string; base?: string; workload?: string }) => {
-      const repoRoot = await findRepoRoot(process.cwd());
-      const queue = new TaskQueue(repoRoot);
+    .option("--recreate", "Tear down any existing worktree/branch and rebuild from base", false)
+    .action(
+      async (options: {
+        task: string;
+        base?: string;
+        workload?: string;
+        recreate?: boolean;
+      }) => {
+        const repoRoot = await findRepoRoot(process.cwd());
+        const queue = new TaskQueue(repoRoot);
 
-      const createOptions = buildCreateWorktreeOptions(options.task, options.base);
+        const createOptions = buildCreateWorktreeOptions(
+          options.task,
+          options.base,
+          options.recreate,
+        );
 
-      const created = options.workload
-        ? await new WorkloadManager(repoRoot).createWorktree(options.workload, createOptions)
-        : await new WorktreeManager(repoRoot).create({
-            ...createOptions,
-            baseBranch: createOptions.baseBranch ?? "main",
-          });
+        const created = options.workload
+          ? await new WorkloadManager(repoRoot).createWorktree(options.workload, createOptions)
+          : await new WorktreeManager(repoRoot).create({
+              ...createOptions,
+              baseBranch: createOptions.baseBranch ?? "main",
+            });
 
-      const updated = await queue.setWorktree(
-        options.task,
-        created.name,
-        options.workload ?? null,
-      );
-      console.log(JSON.stringify({ worktree: created, task: updated }, null, 2));
-    });
+        const updated = await queue.setWorktree(
+          options.task,
+          created.name,
+          options.workload ?? null,
+        );
+        console.log(JSON.stringify({ worktree: created, task: updated }, null, 2));
+      },
+    );
 
   worktree
     .command("list")
@@ -514,10 +526,14 @@ async function resolveTaskWorkspaceForCli(
 function buildCreateWorktreeOptions(
   taskId: string,
   baseBranch?: string,
+  recreate?: boolean,
 ): CreateWorktreeOptions {
-  if (baseBranch === undefined) {
-    return { taskId };
+  const options: CreateWorktreeOptions = { taskId };
+  if (baseBranch !== undefined) {
+    options.baseBranch = baseBranch;
   }
-
-  return { taskId, baseBranch };
+  if (recreate) {
+    options.recreate = true;
+  }
+  return options;
 }
