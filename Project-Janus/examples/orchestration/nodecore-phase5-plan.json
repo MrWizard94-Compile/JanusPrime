@@ -1,0 +1,42 @@
+{
+  "parent": {
+    "assignee": "claude",
+    "validation_profile": "typescript-v1",
+    "context_refs": ["doc:soul", "arch:janus-unified", "doc:handoff-protocol"],
+    "spec": {
+      "objective": "Node Core phase 5 — In Control spawn export and KubeJS extraction alert bridge",
+      "acceptance_criteria": [
+        "/nodecore export incontrol writes valid rule files",
+        "ExtractionAlertEvent allows KubeJS/script cancellation",
+        "gradlew build passes"
+      ]
+    }
+  },
+  "children": [
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "neoforge-mixin-v1",
+        "spec": {
+          "objective": "In Control soft bridge — export areas + spawner snippets from node registry",
+          "files_in_scope": ["src/main/java/com/mrwizard94/nodecore/integration/"]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "neoforge-mixin-v1",
+        "spec": {
+          "objective": "KubeJS-ready ExtractionAlertEvent with example script",
+          "files_in_scope": ["src/main/java/com/mrwizard94/nodecore/event/", "examples/kubejs/"]
+        }
+      }
+    }
+  ],
+  "provision": { "auto_worktree": true, "auto_prepare": false }
+}
