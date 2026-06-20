@@ -1,7 +1,7 @@
 {
   "id": "nodecore",
   "description": "Base Wars Node Core — ore/lush nodes, surface sterility, extraction alerts (Forge 1.20.1)",
-  "repository": null,
+  "repository": "https://github.com/MrWizard94-Compile/Node-Core.git",
   "branch": "main",
   "validation_profile": "neoforge-mixin-v1",
   "clone_path": "repo",
