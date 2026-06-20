@@ -1,0 +1,9 @@
+{
+  "id": "astral-sorcery-116-ref",
+  "description": "AstralSorcery 1.16 upstream reference clone (read-only)",
+  "repository": null,
+  "branch": "main",
+  "validation_profile": "neoforge-mixin-v1",
+  "clone_path": "repo",
+  "local_root": "../../../../../Projects/AstralSorcery-1.16"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "janus-memory",
+  "description": "Smart-Library memory service (FastAPI, heal sandbox, doctrine storage)",
+  "repository": null,
+  "branch": "main",
+  "validation_profile": "python-sandbox-v1",
+  "clone_path": "repo",
+  "local_root": "Smart-Library"
+}

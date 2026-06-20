@@ -1,0 +1,9 @@
+{
+  "id": "living-villages",
+  "description": "Living Villages v2 — NeoForge 1.21.1 Kotlin mod",
+  "repository": null,
+  "branch": "main",
+  "validation_profile": "neoforge-mixin-v1",
+  "clone_path": "repo",
+  "local_root": "../../../../../Projects/Living_Villages"
+}

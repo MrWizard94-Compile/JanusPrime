@@ -1,0 +1,9 @@
+{
+  "id": "bitburner-scripts",
+  "description": "BitBurner Scripts — idle game automation JS",
+  "repository": null,
+  "branch": "main",
+  "validation_profile": "typescript-v1",
+  "clone_path": "repo",
+  "local_root": "../../../../../Projects/BitBurner Scripts"
+}

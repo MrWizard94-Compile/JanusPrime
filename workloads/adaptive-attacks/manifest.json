@@ -1,0 +1,9 @@
+{
+  "id": "adaptive-attacks",
+  "description": "Adaptive Attacks — Adaptive Bosses ability addon (NeoForge 1.21.1)",
+  "repository": null,
+  "branch": "main",
+  "validation_profile": "neoforge-mixin-v1",
+  "clone_path": "repo",
+  "local_root": "../../../../../Projects/Adaptive Attacks"
+}

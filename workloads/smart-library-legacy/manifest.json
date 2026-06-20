@@ -1,0 +1,9 @@
+{
+  "id": "smart-library-legacy",
+  "description": "LEGACY Smart-Library copy — superseded by JanusPrime/Smart-Library",
+  "repository": null,
+  "branch": "main",
+  "validation_profile": "python-sandbox-v1",
+  "clone_path": "repo",
+  "local_root": "../../../../../Projects/Smart Library"
+}

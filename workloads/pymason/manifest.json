@@ -1,0 +1,9 @@
+{
+  "id": "pymason",
+  "description": "PyMason — visual Python builder for ND developers",
+  "repository": null,
+  "branch": "main",
+  "validation_profile": "typescript-v1",
+  "clone_path": "repo",
+  "local_root": "../../../../../Projects/PyMason"
+}

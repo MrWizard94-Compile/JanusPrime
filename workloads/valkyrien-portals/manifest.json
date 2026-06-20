@@ -1,0 +1,9 @@
+{
+  "id": "valkyrien-portals",
+  "description": "Valkyrien Portals — Immersive Portals × VS2 compat (Forge 1.20.1)",
+  "repository": null,
+  "branch": "main",
+  "validation_profile": "neoforge-mixin-v1",
+  "clone_path": "repo",
+  "local_root": "../../../../../Projects/Valkyrien Portals"
+}

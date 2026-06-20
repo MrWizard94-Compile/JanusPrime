@@ -1,0 +1,9 @@
+{
+  "id": "framedblocks",
+  "description": "FramedBlocks mixin E2E workload (git clone — validation smoke)",
+  "repository": "https://github.com/XFactHD/FramedBlocks.git",
+  "branch": "26.1",
+  "validation_profile": "neoforge-mixin-v1",
+  "clone_path": "repo",
+  "local_root": null
+}

@@ -1,0 +1,9 @@
+{
+  "id": "random-story-generator",
+  "description": "Random Story Generator — Python/Tkinter/Ollama desktop app",
+  "repository": null,
+  "branch": "main",
+  "validation_profile": "python-sandbox-v1",
+  "clone_path": "repo",
+  "local_root": "../../../../../Projects/Random Story Generator"
+}

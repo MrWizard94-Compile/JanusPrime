@@ -1,0 +1,9 @@
+{
+  "id": "astral-sorcery-port",
+  "description": "Astral Sorcery 1.16 → 1.20.1 Forge port",
+  "repository": null,
+  "branch": "main",
+  "validation_profile": "neoforge-mixin-v1",
+  "clone_path": "repo",
+  "local_root": "../../../../../Projects/Astral_Sorcery_Port"
+}

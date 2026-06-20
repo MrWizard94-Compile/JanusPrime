@@ -1,0 +1,9 @@
+{
+  "id": "adaptive-bosses",
+  "description": "Adaptive Bosses — NeoForge 1.21.1 adaptive combat AI",
+  "repository": null,
+  "branch": "main",
+  "validation_profile": "neoforge-mixin-v1",
+  "clone_path": "repo",
+  "local_root": "../../../../../Projects/Adaptive Bosses"
+}

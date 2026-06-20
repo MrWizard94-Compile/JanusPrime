@@ -114,8 +114,10 @@ The following are **explicitly out of scope** until Phase 4 engineering starts:
 - [x] Stable MCP resource surface (`janus-resources.ts`)
 - [x] Autonomous loop + validation kernel in production use
 - [x] `e2e:services` / `e2e:sandbox` probes for backend health
+- [x] **Workload registry** — all `C:\Projects` repos + Janus internals registered in `workloads/registry.json` (sync via `node Project-Janus/scripts/sync-workload-manifests.mjs`)
 - [ ] Theia fork / product template repository
 - [ ] UX spec for Ghost Buffer ↔ Phantom Cursor handoff
+- [ ] **Workload picker** — open project → bind `AETHER_TASK_ID` → terminal runs `janus loop run` against registered `local_root`
 
 ---
 

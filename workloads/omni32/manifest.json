@@ -1,0 +1,9 @@
+{
+  "id": "omni32",
+  "description": "AssetConverter Omni32 production pipeline (84k+ textures, 1.20.1 Forge)",
+  "repository": null,
+  "branch": "main",
+  "validation_profile": "asset-audit-v1",
+  "clone_path": "repo",
+  "local_root": "../AssetConverter"
+}

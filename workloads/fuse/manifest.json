@@ -1,0 +1,9 @@
+{
+  "id": "fuse",
+  "description": "FUSE — ADHD task initiation desktop app (Electron)",
+  "repository": null,
+  "branch": "main",
+  "validation_profile": "typescript-v1",
+  "clone_path": "repo",
+  "local_root": "../../../../../Projects/FUSE"
+}

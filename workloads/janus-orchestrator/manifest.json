@@ -1,0 +1,9 @@
+{
+  "id": "janus-orchestrator",
+  "description": "JanusPrime orchestrator monorepo (Aether CLI, validation kernel, MCP)",
+  "repository": null,
+  "branch": "main",
+  "validation_profile": "typescript-v1",
+  "clone_path": "repo",
+  "local_root": "Project-Janus"
+}

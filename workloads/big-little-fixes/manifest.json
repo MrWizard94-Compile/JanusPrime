@@ -1,0 +1,9 @@
+{
+  "id": "big-little-fixes",
+  "description": "Big Little Fixes — Base Wars QoL mod (Forge 1.20.1)",
+  "repository": null,
+  "branch": "main",
+  "validation_profile": "neoforge-mixin-v1",
+  "clone_path": "repo",
+  "local_root": "../../../../../Projects/Big Little Fixes"
+}

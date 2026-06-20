@@ -1,0 +1,9 @@
+{
+  "id": "atoz-grabber",
+  "description": "AtoZ-Grabber — Amazon shift automation (Python/Playwright) [PRIVATE]",
+  "repository": null,
+  "branch": "main",
+  "validation_profile": "python-sandbox-v1",
+  "clone_path": "repo",
+  "local_root": "../../../../../Projects/AtoZ-Grabber"
+}
