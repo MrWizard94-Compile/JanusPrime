@@ -1,0 +1,110 @@
+{
+  "parent": {
+    "assignee": "claude",
+    "workload": null,
+    "validation_profile": "typescript-v1",
+    "context_refs": [
+      "doc:soul",
+      "arch:janus-unified",
+      "doc:handoff-protocol"
+    ],
+    "spec": {
+      "objective": "Node Core phase 2 — worldgen integration, marker linking, and Base Wars pack wiring under Janus validation",
+      "constraints": [
+        "All mutations pass validation kernel before disk write",
+        "Forge 1.20.1 — align with VS2 Ship Systems and Base Wars vision",
+        "Use janus brief for executor context; seed accepted patterns to memory"
+      ],
+      "files_in_scope": [],
+      "acceptance_criteria": [
+        "All child tasks reach accepted status",
+        "gradlew build passes in nodecore workload worktree",
+        "Accepted patterns seeded via janus seed"
+      ]
+    }
+  },
+  "children": [
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "neoforge-mixin-v1",
+        "context_refs": [
+          "doc:soul",
+          "doc:handoff-protocol"
+        ],
+        "spec": {
+          "objective": "Link node_marker block placement to NodeSavedData registry (place creates node, break removes)",
+          "constraints": [
+            "No stubs or TODOs",
+            "Preserve existing /nodecore commands"
+          ],
+          "files_in_scope": [
+            "src/main/java/com/mrwizard94/nodecore/block/NodeMarkerBlock.java",
+            "src/main/java/com/mrwizard94/nodecore/event/NodeMarkerHandler.java"
+          ],
+          "acceptance_criteria": [
+            "gradlew build exits 0 in nodecore workload worktree",
+            "Marker place/break syncs registry"
+          ]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "neoforge-mixin-v1",
+        "context_refs": [
+          "doc:soul",
+          "doc:handoff-protocol"
+        ],
+        "spec": {
+          "objective": "Add forge-forgegradle validation profile candidate: worldgen stub datagen for node spacing hints",
+          "constraints": [
+            "Spacing config from NodeCoreConfig minSpacing/maxSpacing",
+            "Worldgen integration stub only — no Large Ore Deposits hard dependency yet"
+          ],
+          "files_in_scope": [
+            "src/main/java/com/mrwizard94/nodecore/worldgen/"
+          ],
+          "acceptance_criteria": [
+            "gradlew build exits 0",
+            "Design doc updated in references/node-core-design.md"
+          ]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "asset-audit-v1",
+        "context_refs": [
+          "doc:soul",
+          "arch:janus-unified",
+          "asset:mod:nodecore"
+        ],
+        "spec": {
+          "objective": "Generate Omni32-compliant nodecore textures (node_marker, node_survey) via AssetConverter pipeline",
+          "constraints": [
+            "32x policy compliance",
+            "Steampunk/industrial palette per Base Wars vision"
+          ],
+          "files_in_scope": [],
+          "acceptance_criteria": [
+            "Textures pass asset-audit-v1",
+            "Models reference upscaled assets"
+          ]
+        }
+      }
+    }
+  ],
+  "provision": {
+    "auto_worktree": true,
+    "auto_prepare": false
+  }
+}
