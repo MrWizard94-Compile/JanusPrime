@@ -115,8 +115,8 @@ All children `forge-mod-v1`, gated, task id + receipt. Dependency order matters 
 | 4 | Liquid Fire fluid — block, bucket, cauldron-under-soulsand collection, soul-fire tint + particles, fuel value | — |
 | 5 | Create output nerf — grinding/washing/haunting severely reduced | — |
 | 6 | Surface dead-tan grass recolor | — |
-| 7 | Growth-tick booster — locate existing attempt; reuse or build | — |
-| 8 | Lush underground cavern worldgen — below Y0, massive, Dynamic Trees + flora, growth booster, contested/raidable | 7 |
+| 8 | Lush underground cavern worldgen — below Y0, massive, Dynamic Trees + flora, contested/raidable; OWNS the lush-volume membership API (`isInLushCavern`) | — |
+| 7 | Growth-tick booster — reuse/finish existing `LushGrowthHandler`; adapt to cavern volumes (3D sampling via child 8's membership API) | 8 |
 | 9 | AdLods teardown — remove superseded LOD-mirroring | — |
 
 Config surface (server-tunable) spans: node frequency/spacing, cluster sizing, tier output rates, fuel boost multipliers + consumption, buffer size, decay rate, no-build radius/toggle/whitelist, lush cavern frequency, growth-boost rate.

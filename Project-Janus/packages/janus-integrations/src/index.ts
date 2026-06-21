@@ -41,6 +41,11 @@ export {
 } from "./autonomous-loop.js";
 export { AssetTaskExecutor, type AssetTaskResult } from "./asset-task-executor.js";
 export {
+  runGateDoctor,
+  type DoctorReport,
+  type DoctorCheck,
+} from "./gate-doctor.js";
+export {
   PythonSandboxExecutor,
   type PythonSandboxResult,
 } from "./python-sandbox-executor.js";

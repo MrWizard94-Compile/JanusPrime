@@ -14,8 +14,8 @@ export const VALIDATION_PROFILES: Record<string, ValidationProfile> = {
   },
   "forge-mod-v1": {
     id: "forge-mod-v1",
-    description: "Forge mod validation: CLAUDE rules and full Gradle build (non-mixin workloads)",
-    layers: ["lsp", "rules", "build"],
+    description: "Forge mod validation: LSP diagnostics, AST structure, CLAUDE rules, full Gradle build (non-mixin workloads)",
+    layers: ["lsp", "ast", "rules", "build"],
     build_command: "./gradlew build",
   },
   "typescript-v1": {

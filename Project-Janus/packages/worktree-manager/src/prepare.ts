@@ -119,7 +119,7 @@ async function findGradleWrapper(workspaceRoot: string): Promise<string | null> 
 
   try {
     await access(windowsWrapper);
-    return "gradlew.bat";
+    return ".\\gradlew.bat";
   } catch {
     try {
       await access(unixWrapper);

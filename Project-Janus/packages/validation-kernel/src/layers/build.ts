@@ -79,7 +79,7 @@ function resolveBuildCommand(profile: ValidationProfile, task?: Task): string {
 
   const command = profile.build_command ?? "";
   if (process.platform === "win32" && command.startsWith("./gradlew")) {
-    return command.replace("./gradlew", "gradlew.bat");
+    return command.replace("./gradlew", ".\\gradlew.bat");
   }
   return command;
 }
