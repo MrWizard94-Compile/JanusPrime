@@ -697,3 +697,239 @@ Build them; I review each rollup before acceptance.
 5. **Auto-accept** — kernel set `accepted` on `--apply`; seed withheld per standing orders.
 
 — Grok Build
+
+---
+
+### [2026-06-20 19:15] Grok → Claude · [HANDOFF] Extractor multiblock (task-6f34205c)
+
+**Task:** `task-6f34205c-9988-406a-83aa-92c1c3d1faf0` (child 2 of parent `task-86da5106-46cf-4a5e-8027-db4b5754c571`)
+
+**Gate:** `forge-mod-v1` PASS via `aether patch submit -f task-6f34205c-patch/patch.json --apply`
+- Rules: pass · Build: `.\gradlew.bat build` pass (~12.4s)
+- Receipt: `.aether/receipts/task-6f34205c-9988-406a-83aa-92c1c3d1faf0.json`
+- Patch hash: `b589c96a65995605dcaadd31400e9ba8bcbc16e834b282bee490dc24b73a7f27`
+- Validated at: `2026-06-21T02:14:59.757Z`
+- Did **not** run `janus seed` — awaiting your bless.
+
+#### Files changed (23 paths in patch)
+
+**New — extractor core (11 Java)**
+- `block/extractor/OreExtractorCoreBlock.java` — raidable controller block (strength 3.5); adjacent-to-node placement; status on use
+- `block/extractor/OreExtractorFrameBlock.java` — raidable multiblock frame (strength 3.5)
+- `block/extractor/ExtractorMultiblockValidator.java` — adjacent ore-node + 4-cardinal frame ring validation
+- `block/extractor/ExtractorRegistry.java` — SavedData: one extractor per node UUID
+- `block/extractor/ExtractorFuelTier.java` — fuel ladder enum + active-tier resolution
+- `block/extractor/ExtractorOutputCatalog.java` — node-type → processable ore / occasional raw ore block
+- `blockentity/OreExtractorCoreBlockEntity.java` — tick loop: power, fuel, production, backpressure, decay, buffer
+- `blockentity/ModBlockEntities.java` — BE registration
+- `integration/create/CreateModProbe.java` — optional Create presence check
+- `integration/create/CreateKineticBridge.java` — reflection RPM read from neighbor `KineticBlockEntity` (no compile-time Create dep)
+
+**New — assets + manifest (7)**
+- `assets/nodecore/blockstates|models` for `ore_extractor_core` + `ore_extractor_frame`
+- `data/nodecore/extractor/extractor_config.json` — config key manifest + fuel ladder metadata
+
+**Modified (5)**
+- `NodeCoreConfig.java` — `extractor.*` section (20 tunables); `extraction.alertBlocks` adds `nodecore:ore_extractor_core`
+- `ModBlocks.java` / `ModItems.java` / `ModCreativeTabs.java` — register core + frame
+- `NodeCore.java` — register BE + startup log
+- `en_us.json` — block names + extractor status strings
+
+#### Config keys (`extractor` section)
+
+| Key | Default | Role |
+|-----|---------|------|
+| `enabled` | `true` | Master switch |
+| `baseProductionPerTick` | `0.05` | Base ore output rate before multipliers |
+| `tier1Multiplier` / `tier2Multiplier` / `tier3Multiplier` | `1.0` / `1.75` / `2.5` | Output scaling via `NodeQueries.tierAt` |
+| `fuelBoostCharcoal` / `fuelBoostCoal` / `fuelBoostLava` / `fuelBoostLiquidFire` | `1.15` / `1.35` / `1.75` / `2.5` | Fuel ladder boost multipliers |
+| `fuelBurnCharcoal` / `fuelBurnCoal` / `fuelBurnLava` / `fuelBurnLiquidFire` | `1600` / `2400` / `20000` / `36000` | Solid-slot burn ticks per fuel item |
+| `lavaTankCapacity` | `8000` | Internal lava tank (mB) |
+| `lavaConsumptionMb` | `5` | Lava drained per production tick when piped lava is active |
+| `bufferSlots` / `bufferStackLimit` | `27` / `64` | Output buffer size (backpressure threshold) |
+| `rawOreBlockChance` | `0.08` | Chance per output roll → raw ore block vs processable ore |
+| `decayIntervalTicks` / `decayAmount` | `200` / `1` | Unpowered buffer bleed rate |
+| `minRotationSpeed` | `16.0` | Min neighbor Create RPM to run |
+| `structureCheckInterval` | `40` | Multiblock revalidation cadence |
+
+#### Mechanics summary
+
+**Multiblock:** Player places `ore_extractor_core` adjacent to an `ore_node` fixture, with `ore_extractor_frame` on all four horizontal neighbors of the core. `ExtractorMultiblockValidator` re-checks every `structureCheckInterval` ticks.
+
+**One per node:** `ExtractorRegistry` (dimension SavedData) maps node UUID → core position. Second core on same node rejected at claim time.
+
+**Create power:** `CreateKineticBridge` scans all 6 neighbors for Create `KineticBlockEntity` instances via reflection; max `|RPM| ≥ minRotationSpeed` = powered. No mixin; no compile-time Create dependency.
+
+**Fuel ladder:** `charcoal < coal < lava < Liquid Fire`. Solid fuels in top slot (UP face capability); lava via internal `FluidTank` (pipeable on side faces). Piped lava takes priority over solid burn when tank has ≥ `lavaConsumptionMb`. Liquid Fire bucket uses child 4's registered item.
+
+**Production:** `rate = baseProductionPerTick × tierMultiplier × fuelBoost`. Output type from linked node's `NodeType` via `ExtractorOutputCatalog` (brass → `create:raw_zinc` with fallback). Fractional accumulator spawns items into internal buffer.
+
+**Backpressure:** All buffer slots at stack limit → production pauses (status: backpressure).
+
+**Power loss:** No qualifying RPM → production pauses; buffer slowly decays (`decayAmount` items per `decayIntervalTicks`).
+
+**Raidability:** Core + frame are normal destructible blocks (3.5 hardness). `ore_node` remains protected by existing `OreNodeProtectionHandler`. Core `onRemove`/explosion releases registry claim.
+
+**Haul-out:** Buffer exposed via item capability on non-UP faces (hopper extraction). Fuel on UP face.
+
+#### [ASK] decisions
+
+1. **Frame pattern** — v1 uses simple 4-cardinal ring. Acceptable, or require vertical drill column / buffer block as separate multiblock part for child 3 whitelist coordination?
+2. **Brass output** — maps to `create:raw_zinc` (fallback `raw_copper`). Correct for pack economy?
+3. **Decay while invalid structure** — decay also runs when structure invalid (not just power loss). Intended bleed for half-built drills, or restrict decay to power-loss-only?
+4. **Create RPM threshold 16** — tune after playtest? Too low may run on incidental neighbor rotation.
+5. **Auto-accept** — kernel set `accepted` on `--apply`; seed withheld per standing orders.
+
+— Grok Build
+
+---
+
+### [2026-06-20 19:25] Grok → Claude · [HANDOFF] No-build aura (task-42f0ec8b)
+
+**Task:** `task-42f0ec8b-995c-493a-ac6f-f68512eb84e0` (child 3 of parent `task-86da5106-46cf-4a5e-8027-db4b5754c571`)
+
+**Gate:** `forge-mod-v1` PASS via `aether patch submit -f task-42f0ec8b-patch/patch.json --apply`
+- Rules: pass · Build: `.\gradlew.bat build` pass (~12.0s)
+- Receipt: `.aether/receipts/task-42f0ec8b-995c-493a-ac6f-f68512eb84e0.json`
+- Patch hash: `8ab39eecd12a14301b7834db3f0799bed8f84e1f1212bea197ef3e69b6053c2e`
+- Validated at: `2026-06-21T02:20:28.659Z`
+- Profile stayed **`forge-mod-v1`** — no mixin required. Did **not** run `janus seed` — awaiting your bless.
+
+**Infra note:** `worktree prepare` still fails (`gradlew.bat` without `.\` prefix on Windows); patch gate build layer passes. Same class of bug as child 1 — already fixed in `build.ts` on gate-infra branch but may not be merged here yet.
+
+#### Files changed (3 paths in patch)
+
+| Path | Role |
+|------|------|
+| `event/OreNodeNoBuildAuraHandler.java` | **New** — `BlockEvent.EntityPlaceEvent` handler; auto-registers via `@Mod.EventBusSubscriber` |
+| `config/NodeCoreConfig.java` | **Modified** — `noBuildAura.*` config section |
+| `assets/nodecore/lang/en_us.json` | **Modified** — denial action-bar message |
+
+#### Config keys (`noBuildAura` section)
+
+| Key | Default | Role |
+|-----|---------|------|
+| `enabled` | `true` | Master toggle for no-build aura |
+| `radius` | `24` | Block-placement denial radius from each ore-node **center** (4–128) |
+| `whitelist` | `nodecore:ore_extractor_core`, `nodecore:ore_extractor_frame` | Extensible block-id list allowed inside aura |
+
+TOML path: `config/nodecore-common.toml` → `[noBuildAura]`.
+
+#### Radius check + whitelist mechanics
+
+1. **`BlockEvent.EntityPlaceEvent`** fires on server when any entity places a block (players, dispensers, etc.).
+2. Early exit if `noBuildAura.enabled` is false, or placed block id is in `whitelist` (exact `namespace:path` string match).
+3. **`NodeSavedData.get(level).within(pos, radius)`** queries registered nodes whose center is within `radius` blocks of the placement position (Euclidean, `distSqr`).
+4. If any matching node has an **ore** type (`NodeType.isOre()`), placement is **canceled**.
+5. Server players get action-bar message `nodecore.message.no_build_aura`.
+
+**Design separation:** Aura radius (`noBuildAura.radius`, default 24) is independent of each node's registered volume radius (`nodes.defaultRadius` / per-node SavedData radius, typically 96–128). Players may build in the outer deposit volume but cannot wall the tap itself.
+
+**Child 2 coordination:** v1's 4-cardinal `ore_extractor_frame` ring + adjacent `ore_extractor_core` are both whitelisted — drill multiblock places cleanly inside the aura. No extra multiblock parts needed for whitelist v1.
+
+#### Mixin?
+
+**No.** Forge `BlockEvent.EntityPlaceEvent` on the FORGE event bus is sufficient. Profile unchanged.
+
+#### [ASK] decisions
+
+1. **Default radius 24** — tight enough to prevent tap fortification, loose enough for Create logistics just outside. Tune after playtest?
+2. **Lush nodes excluded** — aura applies only to ore-type nodes (`isOre()`), not `lush_hydro`. Correct per spec §1.5 (ore taps only)?
+3. **Non-player entities** — dispensers/schematics placing inside aura are also blocked (not player-only). Stricter than spec wording; intentional anti-automation?
+4. **Child 2 frame-pattern ASK** — current whitelist covers v1 frame ring; if child 2 gains vertical/buffer parts later, add their block ids to `whitelist` config only.
+5. **Auto-accept** — kernel set `accepted` on `--apply`; seed withheld per standing orders.
+
+— Grok Build
+
+---
+
+### [2026-06-20 22:30] Grok → Claude · [HANDOFF] Lush underground caverns (task-3f1f44fc)
+
+**Task:** `task-3f1f44fc-cae1-4bb0-851a-489d11384e31` (child 8 of parent `task-86da5106-46cf-4a5e-8027-db4b5754c571`)
+
+**Gate:** `forge-mod-v1` PASS via `aether patch submit -f task-3f1f44fc-patch/patch.json --apply`
+- Rules: pass · Build: `.\gradlew.bat build` pass (~12.1s)
+- Receipt: `.aether/receipts/task-3f1f44fc-cae1-4bb0-851a-489d11384e31.json`
+- Patch hash: `f3857900b17450c9d10ba9b795ebb23492292cd30d5496e3120beebf28463ae3`
+- Profile stayed **`forge-mod-v1`** — no mixin required. Did **not** run `janus seed` (awaiting your bless).
+
+#### Files changed (16 paths in patch)
+
+**New — data / membership contract**
+- `data/LushCavernVolume.java` — axis-aligned 3D region record (`contains`, `intersectsChunk`, NBT + packet codec)
+- `data/LushCavernSavedData.java` — per-dimension SavedData (`nodecore_lush_caverns`) backing canonical membership
+
+**New — worldgen**
+- `worldgen/LushCavernGrid.java` — deterministic grid spec (frequency hash, size roll, sub-zero Y bounds)
+- `worldgen/LushCavernPlacer.java` — ellipsoid carve + flora/trees; registers volume + territory on anchor chunk
+- `event/LushCavernChunkHandler.java` — `ChunkEvent.Load` worldgen pass (mirrors ore-node pattern)
+
+**New — Dynamic Trees soft dependency**
+- `integration/dynamictrees/DynamicTreesModProbe.java` — `ModList.isLoaded("dynamictrees")`
+- `integration/dynamictrees/DynamicTreesBridge.java` — reflection API grow + sapling fallback (no compile-time dep)
+
+**New — client sync (child 6 tint delegation)**
+- `network/NodeCoreNetwork.java` — Forge `SimpleChannel`; sync on login + chunk watch + new cavern register
+- `network/LushCavernVolumesPacket.java` — volume list packet (replace-all on login, incremental on chunk/register)
+- `client/LushCavernClientCache.java` — client-side volume mirror for tint queries
+- `event/LushCavernSyncHandler.java` — login/logout/chunk-watch sync hooks
+
+**Modified**
+- `node/NodeQueries.java` — **`isInLushCavern(ServerLevel, BlockPos)`** canonical server query → `LushCavernSavedData.contains`
+- `client/LushCavernTintQueries.java` — re-wired to delegate to `LushCavernClientCache.contains(pos)` (child 6 dead-tan exclusion)
+- `config/NodeCoreConfig.java` — `lushCavern.*` config section
+- `NodeCore.java` — registers `NodeCoreNetwork` + startup log
+- `data/nodecore/worldgen/lush_cavern_worldgen.json` — datagen defaults reference
+
+#### Config keys (`lushCavern` section)
+
+| Key | Default | Role |
+|-----|---------|------|
+| `enabled` | `true` | Master switch for lush cavern worldgen |
+| `frequency` | `0.12` | Fraction of grid slots that receive a cavern (0.0–1.0) |
+| `gridSpacing` | `2048` | Blocks between cavern anchor grid points |
+| `minY` / `maxY` | `-56` / `-8` | Cavern volume Y bounds (both below 0) |
+| `minHorizontalRadius` / `maxHorizontalRadius` | `48` / `96` | Ellipsoid X/Z radii (farm-scale chambers) |
+| `minVerticalRadius` / `maxVerticalRadius` | `24` / `40` | Ellipsoid Y radius |
+| `floraDensity` | `0.35` | Grass/fern scatter chance per floor sample |
+| `treeDensity` | `0.08` | Tree placement chance (DT when present, else oak sapling) |
+| `mossDensity` | `0.25` | Moss carpet scatter chance |
+| `registerTerritory` | `true` | Register each cavern as `lush_hydro` held territory in `NodeSavedData` |
+| `territoryPadding` | `16` | Extra radius added to territory node registration |
+
+TOML path: `config/nodecore-common.toml` → `[lushCavern]`.
+
+#### How it works
+
+**Worldgen:** On overworld `ChunkEvent.Load`, `LushCavernPlacer` scans grid points within chunk range. Deterministic seed hash decides placement + ellipsoid dimensions. Anchor chunk carves a massive sub-zero ellipsoid (air), decorates floor with grass/ferns/moss, and plants trees. Caverns are farm-scale (48–96 block horizontal radius default).
+
+**Membership contract (child 6 + 7 dependency):**
+- **Server canonical:** `NodeQueries.isInLushCavern(level, pos)` → `LushCavernSavedData.contains(pos)` — axis-aligned 3D AABB test, not point-radius or surface heightmap.
+- **Client (child 6 tint):** `LushCavernTintQueries.isInLushCavern` → `LushCavernClientCache.contains(pos)` — fed by server packets on login/chunk-watch/new-cavern.
+- Volumes registered in SavedData when anchor chunk generates; persisted across restarts.
+- Child 7 should switch `LushGrowthHandler` sampling from `isInLushNode` to `isInLushCavern` (or union both).
+
+**Dynamic Trees:** `DynamicTreesBridge.tryPlantTree` probes mod presence, attempts reflection grow via species API, falls back to placing `dynamictrees:*_sapling` blocks, then vanilla `oak_sapling`. Zero hard compile-time dependency.
+
+**Territory (partial contested/raidable):** Each cavern registers a `lush_hydro` `ResourceNode` in `NodeSavedData` (center + horizontal radius + padding) for In Control export / spawn hooks. This is the **held-territory marker** — same pattern as ore nodes.
+
+#### Deferred (follow-up — not in this patch)
+
+- **Raid/claim mechanics** — no destructible farming structures, ownership UI, or crop-plot raid loop (spec §2 "contested/raidable like ore taps"). Territory registration + spawn export is in; full PvP raid gameplay is a separate child.
+- **Growth booster adaptation** — child 7 owns switching `LushGrowthHandler` to 3D `isInLushCavern` sampling.
+- **Cavern-specific extraction alerts / defense structures** — none added; would mirror child 2 extractor raid model if desired.
+
+#### Mixin?
+
+**No.** Chunk-load worldgen + SavedData + Forge networking + color-handler delegation. Profile unchanged.
+
+#### [ASK] decisions
+
+1. **Grid spacing 2048 / frequency 0.12** — ~1 massive cavern per 2048-block cell, 12% roll. Tune for server density?
+2. **Ellipsoid carve vs AABB membership** — carve is ellipsoid; membership query is AABB bounding box (slightly larger at corners). Acceptable, or tighten membership to ellipsoid test?
+3. **Territory = lush_hydro node** — reuses existing `NodeType.LUSH_HYDRO` for In Control export. Separate cavern-specific type later?
+4. **Tree species pool** — defaults to oak/birch/spruce/jungle DT species. Biome-keyed species selection?
+5. **Chunk-load carve on revisit** — already-generated chunks re-run carve safely (idempotent air replace + registration guard). Existing worlds get caverns on first load after deploy.
+6. **Auto-accept** — kernel set `accepted` on `--apply`; seed withheld per standing orders.
+
+— Grok Build

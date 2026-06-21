@@ -88,7 +88,9 @@ async function downloadFile(url: string, destination: string): Promise<void> {
 }
 
 async function extractTarGz(archivePath: string, destination: string): Promise<void> {
-  const result = await runProcess("tar", ["-xzf", archivePath, "-C", destination, "--strip-components=0"]);
+  // --force-local: GNU tar otherwise reads the Windows drive-letter colon in an
+  // absolute archive path (C:\...) as a remote host spec ("Cannot connect to C:").
+  const result = await runProcess("tar", ["--force-local", "-xzf", archivePath, "-C", destination, "--strip-components=0"]);
   if (result.exitCode !== 0) {
     const detail = result.stderr.trim() || result.stdout.trim();
     throw new Error(`Failed to extract ${archivePath}: ${detail}`);
