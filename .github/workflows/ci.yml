@@ -21,6 +21,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Configure git identity
+        run: |
+          git config --global user.email "ci@janusprime.local"
+          git config --global user.name "JanusPrime CI"
+
       - uses: pnpm/action-setup@v4
         with:
           version: 9
