@@ -1,0 +1,14 @@
+{
+  "name": "janus-repair-context",
+  "description": "Build repair context for the bound task from validation errors and memory",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "task_id": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  }
+}

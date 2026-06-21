@@ -72,16 +72,18 @@ services:
       - REL_ADMIN_PASSWORD=${REL_ADMIN_PASSWORD:?REL_ADMIN_PASSWORD is required — copy .env.example to .env}
       - REL_OAUTH2_SECRET=${REL_OAUTH2_SECRET:?REL_OAUTH2_SECRET is required — copy .env.example to .env}
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen2.5-coder:7b}
     volumes:
-      - ${REL_DATA_PATH:-C:/REL_Codex_Variant/data}:/app/runtime/data
+      - ${REL_DATA_PATH:-C:/Projects/REL_Codex_Variant/data}:/app/runtime/data
     depends_on:
       ollama:
         condition: service_healthy
     healthcheck:
+      # Image is python:3.11-slim — no curl/wget. Use stdlib urllib like the memory service.
       test:
         [
           "CMD-SHELL",
-          "curl -fsS http://127.0.0.1:8080/health >/dev/null || wget -q -O /dev/null http://127.0.0.1:8080/health",
+          "python -c \"import urllib.request; exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=5).status==200 else 1)\"",
         ]
       interval: 30s
       timeout: 10s
