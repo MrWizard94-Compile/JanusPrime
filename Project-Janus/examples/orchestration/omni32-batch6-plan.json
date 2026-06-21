@@ -1,0 +1,124 @@
+{
+  "parent": {
+    "assignee": "claude",
+    "validation_profile": "typescript-v1",
+    "context_refs": ["doc:claude", "arch:janus-unified", "doc:handoff-protocol"],
+    "spec": {
+      "objective": "Omni32 batch-6 — instance loader wiring + Base Wars mod upscale expansion",
+      "constraints": [
+        "Instance overrides reference-only under packs/base-wars-instance-overrides/",
+        "Asset registry changes via omni32 workload; upscale via janus assets run",
+        "Loader Java changes via forge-mod-v1 gate only"
+      ],
+      "files_in_scope": [],
+      "acceptance_criteria": [
+        "omni32_loader-client.toml template deployed to packs/",
+        "5+ new Base Wars mods registered and upscaled",
+        "Omni32 resource pack rebuilt",
+        "Loader config documents assets.root path"
+      ]
+    }
+  },
+  "children": [
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "omni32",
+        "validation_profile": "asset-audit-v1",
+        "context_refs": ["doc:claude", "doc:handoff-protocol", "asset:mod:structurize", "asset:action:run"],
+        "spec": {
+          "objective": "Add Base Wars batch-6 mods to registry and QUEUE_PRIORITY (structurize, buildinggadgets2, framedblocks, domum_ornamentum, create_radar)",
+          "constraints": [
+            "Use public git repos where available; JAR_ONLY for closed-source mods",
+            "Sync NamespaceMapper aliases if namespace differs from mod_id"
+          ],
+          "files_in_scope": [
+            "config/registry.py",
+            "pipeline/queue.py",
+            "docs/MOD_QUEUE.md"
+          ],
+          "acceptance_criteria": [
+            "janus assets queue shows pending > 0",
+            "MOD_REPOS entries for batch-6 mods",
+            "python ac.py sync-queue updates MOD_QUEUE.md"
+          ]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "omni32",
+        "validation_profile": "asset-audit-v1",
+        "context_refs": ["doc:claude", "asset:action:build"],
+        "spec": {
+          "objective": "Upscale batch-6 mods and rebuild Omni32 resource pack",
+          "constraints": [
+            "Run janus assets run per mod then janus assets build",
+            "No deploy to live instance without separate pack task"
+          ],
+          "files_in_scope": [
+            "output/assets/",
+            "output/resourcepack/Omni32/"
+          ],
+          "acceptance_criteria": [
+            "All batch-6 mods show in janus assets queue as done",
+            "janus assets build exits 0",
+            "New namespaces present under output/resourcepack/Omni32/assets/"
+          ]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "omni32-loader",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude", "doc:handoff-protocol"],
+        "spec": {
+          "objective": "Base Wars instance override — omni32_loader-client.toml with assets.root",
+          "constraints": [
+            "Template only under packs/base-wars-instance-overrides/",
+            "Point assets.root at AssetConverter output/assets"
+          ],
+          "files_in_scope": [
+            "packs/base-wars-instance-overrides/config/omni32_loader-client.toml",
+            "packs/base-wars-instance-overrides/README.md"
+          ],
+          "acceptance_criteria": [
+            "assets.root configured for ASSET_STORE layout",
+            "activeOnly=true, logDiscovery=true",
+            "README table lists live deploy target"
+          ]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "omni32-loader",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude", "doc:handoff-protocol"],
+        "spec": {
+          "objective": "Omni32PackResources — implement getMetadataSection for PackMetadataSection",
+          "constraints": [
+            "Eliminate ResourcePackInfo warnings at runtime",
+            "No empty catch blocks"
+          ],
+          "files_in_scope": [
+            "src/main/java/com/mrwizard94/omni32loader/pack/Omni32PackResources.java"
+          ],
+          "acceptance_criteria": [
+            "getMetadataSection returns valid PackMetadataSection from pack.mcmeta",
+            "gradlew build exits 0"
+          ]
+        }
+      }
+    }
+  ],
+  "provision": { "auto_worktree": true, "auto_prepare": true }
+}

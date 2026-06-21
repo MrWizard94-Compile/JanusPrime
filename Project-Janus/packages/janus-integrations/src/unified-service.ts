@@ -12,7 +12,7 @@ import { resolveOrchestratorRoot } from "./config.js";
 import { AssetRunner } from "./asset-runner.js";
 import { MemoryClient } from "./memory-client.js";
 import { RelBridge } from "./rel-bridge.js";
-import { excerptSoul, hashSoul, loadSoul } from "./soul.js";
+import { excerptClaude, hashClaude, loadClaude } from "./claude.js";
 
 export interface ResolvedContextExcerpt {
   ref: string;
@@ -20,8 +20,8 @@ export interface ResolvedContextExcerpt {
 }
 
 export interface UnifiedBrief extends ExecutorBrief {
-  doctrine_ref: "doc:soul";
-  soul_doctrine?: string;
+  doctrine_ref: "doc:claude";
+  claude_doctrine?: string;
   resolved_context?: ResolvedContextExcerpt[];
   memory_context?: string[];
   repair_hints?: string[];
@@ -47,7 +47,7 @@ export interface RepairContext {
   validation_errors: ValidationError[];
   memory_slices: string[];
   repair_query: string;
-  soul_doctrine?: string;
+  claude_doctrine?: string;
   resolved_context_hint?: ResolvedContextExcerpt;
 }
 
@@ -55,7 +55,7 @@ export interface DoctrineStatus {
   fresh: boolean;
   content_hash: string;
   stored_count: number;
-  soul_path: string;
+  claude_path: string;
   memory_reachable: boolean;
   detail?: string;
 }
@@ -69,7 +69,7 @@ export class JanusUnifiedService {
   private readonly orchestrator: OrchestratorService;
   private readonly queue: TaskQueue;
   private readonly relBridge: RelBridge;
-  private soulCache: string | null = null;
+  private claudeCache: string | null = null;
 
   constructor(janusRoot: string, config: JanusConfig) {
     this.janusRoot = janusRoot;
@@ -77,34 +77,36 @@ export class JanusUnifiedService {
     this.orchestratorRoot = resolveOrchestratorRoot(janusRoot, config);
     this.memory = new MemoryClient(config.components.memory);
     this.assets = new AssetRunner(janusRoot, config);
-    this.orchestrator = new OrchestratorService(this.orchestratorRoot);
-    this.queue = new TaskQueue(this.orchestratorRoot);
+    // Task queue + orchestration state live at JanusPrime workspace root (.aether/),
+    // matching `aether orchestrate` / `findRepoRoot` — not Project-Janus subfolder.
+    this.orchestrator = new OrchestratorService(janusRoot);
+    this.queue = new TaskQueue(janusRoot);
     this.relBridge = new RelBridge(janusRoot, config);
   }
 
-  async getSoulExcerpt(): Promise<string | undefined> {
+  async getClaudeExcerpt(): Promise<string | undefined> {
     if (!this.config.doctrine.inject_into_brief) {
       return undefined;
     }
-    if (!this.soulCache) {
-      this.soulCache = await loadSoul(this.janusRoot, this.config);
+    if (!this.claudeCache) {
+      this.claudeCache = await loadClaude(this.janusRoot, this.config);
     }
-    return excerptSoul(this.soulCache, this.config.doctrine.brief_excerpt_max_chars);
+    return excerptClaude(this.claudeCache, this.config.doctrine.brief_excerpt_max_chars);
   }
 
   async buildUnifiedBrief(taskId: string): Promise<UnifiedBrief> {
     const brief = await this.orchestrator.buildExecutorBrief(taskId);
-    const soulDoctrine = await this.getSoulExcerpt();
+    const claudeDoctrine = await this.getClaudeExcerpt();
 
     const unified: UnifiedBrief = {
       ...brief,
-      doctrine_ref: "doc:soul",
+      doctrine_ref: "doc:claude",
       token_estimate_chars: estimateChars(brief),
     };
 
-    if (soulDoctrine) {
-      unified.soul_doctrine = soulDoctrine;
-      unified.token_estimate_chars += soulDoctrine.length;
+    if (claudeDoctrine) {
+      unified.claude_doctrine = claudeDoctrine;
+      unified.token_estimate_chars += claudeDoctrine.length;
     }
 
     const queryParts = [brief.objective, ...brief.files_in_scope];
@@ -132,7 +134,7 @@ export class JanusUnifiedService {
     }
 
     const refsToResolve = selectCatalogContextRefs(brief.context_refs, {
-      skipSoulDuplicate: Boolean(soulDoctrine),
+      skipClaudeDuplicate: Boolean(claudeDoctrine),
     });
 
     try {
@@ -203,13 +205,13 @@ export class JanusUnifiedService {
       repair_query: repairQuery,
     };
 
-    const soulDoctrine = await this.getSoulExcerpt();
-    if (soulDoctrine) {
-      context.soul_doctrine = soulDoctrine;
+    const claudeDoctrine = await this.getClaudeExcerpt();
+    if (claudeDoctrine) {
+      context.claude_doctrine = claudeDoctrine;
     }
 
     const refsToResolve = selectCatalogContextRefs(publicContextRefs(task.context_refs), {
-      skipSoulDuplicate: Boolean(soulDoctrine),
+      skipClaudeDuplicate: Boolean(claudeDoctrine),
     });
 
     try {
@@ -233,8 +235,8 @@ export class JanusUnifiedService {
   }
 
   async getDoctrineStatus(): Promise<DoctrineStatus> {
-    const content = await loadSoul(this.janusRoot, this.config);
-    const contentHash = hashSoul(content);
+    const content = await loadClaude(this.janusRoot, this.config);
+    const contentHash = hashClaude(content);
 
     try {
       const status = await this.memory.getDoctrineStatus(contentHash);
@@ -242,7 +244,7 @@ export class JanusUnifiedService {
         fresh: status.fresh,
         content_hash: contentHash,
         stored_count: status.stored_count,
-        soul_path: this.config.doctrine.soul_path,
+        claude_path: this.config.doctrine.claude_path,
         memory_reachable: true,
       };
     } catch (error) {
@@ -250,7 +252,7 @@ export class JanusUnifiedService {
         fresh: false,
         content_hash: contentHash,
         stored_count: 0,
-        soul_path: this.config.doctrine.soul_path,
+        claude_path: this.config.doctrine.claude_path,
         memory_reachable: false,
         detail: error instanceof Error ? error.message : String(error),
       };
@@ -258,7 +260,7 @@ export class JanusUnifiedService {
   }
 
   async seedDoctrine(): Promise<{ seeded: boolean; message?: string }> {
-    const content = await loadSoul(this.janusRoot, this.config);
+    const content = await loadClaude(this.janusRoot, this.config);
     const result = await this.memory.seed(content, "Operational Doctrine", "All");
     return { seeded: true, message: result.message };
   }
@@ -308,9 +310,9 @@ export class JanusUnifiedService {
       return this.seedRepairPattern(taskId);
     }
 
-    const soulExcerpt = await this.getSoulExcerpt();
+    const claudeExcerpt = await this.getClaudeExcerpt();
     const content = [
-      soulExcerpt ? `Doctrine: ${soulExcerpt.slice(0, 500)}` : "",
+      claudeExcerpt ? `Doctrine: ${claudeExcerpt.slice(0, 500)}` : "",
       `Objective: ${task.spec.objective}`,
       `Files: ${task.spec.files_in_scope.join(", ")}`,
       `Profile: ${task.validation_profile}`,
@@ -387,7 +389,7 @@ export class JanusUnifiedService {
 
 export function selectCatalogContextRefs(
   contextRefs: readonly string[],
-  options: { skipSoulDuplicate: boolean },
+  options: { skipClaudeDuplicate: boolean },
 ): string[] {
   const selected: string[] = [];
 
@@ -398,7 +400,7 @@ export function selectCatalogContextRefs(
     if (ORCHESTRATOR_ONLY_CONTEXT_REFS.has(ref)) {
       continue;
     }
-    if (options.skipSoulDuplicate && ref === "doc:soul") {
+    if (options.skipClaudeDuplicate && ref === "doc:claude") {
       continue;
     }
     selected.push(ref);
@@ -461,12 +463,12 @@ function estimateChars(brief: ExecutorBrief): number {
 
 export function measureBriefContentChars(unified: UnifiedBrief): number {
   const base = estimateChars(unified);
-  const soul = unified.soul_doctrine?.length ?? 0;
+  const claude = unified.claude_doctrine?.length ?? 0;
   const resolved =
     unified.resolved_context?.reduce((sum, item) => sum + item.excerpt.length, 0) ?? 0;
   const memory = unified.memory_context?.join("").length ?? 0;
   const repair = unified.repair_hints?.join("").length ?? 0;
-  return base + soul + resolved + memory + repair;
+  return base + claude + resolved + memory + repair;
 }
 
 export function enforceBriefBudget(unified: UnifiedBrief, maxChars: number): UnifiedBrief {
@@ -490,7 +492,7 @@ export function enforceBriefBudget(unified: UnifiedBrief, maxChars: number): Uni
   truncateMemoryContext(result, maxChars);
   truncateRepairHints(result, maxChars);
   truncateResolvedContext(result, maxChars);
-  truncateSoulDoctrine(result, maxChars);
+  truncateClaudeDoctrine(result, maxChars);
 
   if (measureBriefContentChars(result) > maxChars) {
     truncateBaseBriefFields(result, maxChars);
@@ -573,17 +575,17 @@ function truncateResolvedContext(unified: UnifiedBrief, maxChars: number): void 
   }
 }
 
-function truncateSoulDoctrine(unified: UnifiedBrief, maxChars: number): void {
-  if (!unified.soul_doctrine || measureBriefContentChars(unified) <= maxChars) {
+function truncateClaudeDoctrine(unified: UnifiedBrief, maxChars: number): void {
+  if (!unified.claude_doctrine || measureBriefContentChars(unified) <= maxChars) {
     return;
   }
 
   const excess = measureBriefContentChars(unified) - maxChars;
-  const nextLength = Math.max(0, unified.soul_doctrine.length - excess);
-  unified.soul_doctrine = truncate(unified.soul_doctrine, nextLength);
+  const nextLength = Math.max(0, unified.claude_doctrine.length - excess);
+  unified.claude_doctrine = truncate(unified.claude_doctrine, nextLength);
 
-  if (unified.soul_doctrine.length === 0) {
-    delete unified.soul_doctrine;
+  if (unified.claude_doctrine.length === 0) {
+    delete unified.claude_doctrine;
   }
 }
 
@@ -651,14 +653,14 @@ function collectTruncatableTextEntries(unified: UnifiedBrief): TruncatableTextEn
     },
   ];
 
-  if (unified.soul_doctrine) {
+  if (unified.claude_doctrine) {
     entries.push({
-      get: () => unified.soul_doctrine ?? "",
+      get: () => unified.claude_doctrine ?? "",
       set: (value) => {
         if (value.length === 0) {
-          delete unified.soul_doctrine;
+          delete unified.claude_doctrine;
         } else {
-          unified.soul_doctrine = value;
+          unified.claude_doctrine = value;
         }
       },
     });

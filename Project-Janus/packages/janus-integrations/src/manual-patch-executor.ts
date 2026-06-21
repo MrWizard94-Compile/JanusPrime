@@ -6,8 +6,7 @@ import { OrchestratorService } from "@aether/orchestrator";
 import { TaskQueue } from "@aether/task-queue";
 import { HandoffService, type SubmitPatchResult } from "@aether/validation-kernel";
 import type { JanusConfig } from "./config.js";
-import { resolveOrchestratorRoot } from "./config.js";
-import { applySoulAutoFixesToFiles } from "./soul-auto-fix.js";
+import { applyClaudeAutoFixesToFiles } from "./claude-auto-fix.js";
 import { JanusUnifiedService } from "./unified-service.js";
 
 export interface ManualPatchResult {
@@ -25,7 +24,7 @@ export interface ManualPatchResult {
 }
 
 export class ManualPatchExecutor {
-  private readonly orchestratorRoot: string;
+  private readonly janusRoot: string;
   private readonly stateDir: string;
   private readonly orchestrator: OrchestratorService;
   private readonly queue: TaskQueue;
@@ -33,14 +32,18 @@ export class ManualPatchExecutor {
   private readonly unified: JanusUnifiedService;
 
   constructor(janusRoot: string, config: JanusConfig) {
-    this.orchestratorRoot = resolveOrchestratorRoot(janusRoot, config);
-    this.stateDir = join(
-      this.orchestratorRoot,
-      config.components.orchestrator.state_dir,
-    );
-    this.orchestrator = new OrchestratorService(this.orchestratorRoot);
-    this.queue = new TaskQueue(this.orchestratorRoot);
-    this.handoff = new HandoffService(this.orchestratorRoot);
+    // Task store, patch staging, and validation/apply all resolve to the
+    // JanusPrime workspace root (.aether/), matching JanusUnifiedService and the
+    // `aether` CLI's findRepoRoot — NOT the Project-Janus orchestrator subroot.
+    // Rooting these at the subroot split the task store the loop/CLI read
+    // (workspace .aether, 36 tasks) from the one this executor wrote (subroot
+    // .aether, stale) — the .aether split-brain. orchestrator.root remains the
+    // base for catalog-doc resolution inside JanusUnifiedService only.
+    this.janusRoot = janusRoot;
+    this.stateDir = join(janusRoot, config.components.orchestrator.state_dir);
+    this.orchestrator = new OrchestratorService(janusRoot);
+    this.queue = new TaskQueue(janusRoot);
+    this.handoff = new HandoffService(janusRoot);
     this.unified = new JanusUnifiedService(janusRoot, config);
   }
 
@@ -96,7 +99,7 @@ export class ManualPatchExecutor {
 
     try {
       const updated = await this.handoff.applyValidatedPatch(
-        this.orchestratorRoot,
+        this.janusRoot,
         proposal,
       );
       return {
@@ -127,7 +130,7 @@ export class ManualPatchExecutor {
     } catch (error) {
       await this.queue.setResult(
         task.id,
-        JSON.stringify({ ...repair, doctrine_ref: "doc:soul" }),
+        JSON.stringify({ ...repair, doctrine_ref: "doc:claude" }),
       );
       return {
         task_id: task.id,
@@ -138,7 +141,7 @@ export class ManualPatchExecutor {
       };
     }
 
-    const fixedFiles = applySoulAutoFixesToFiles(proposal.files, errors);
+    const fixedFiles = applyClaudeAutoFixesToFiles(proposal.files, errors);
     const repairedProposal: PatchProposal = {
       ...proposal,
       files: fixedFiles,
@@ -156,7 +159,7 @@ export class ManualPatchExecutor {
   ): Promise<ManualPatchResult> {
     try {
       const result: SubmitPatchResult = await this.handoff.submit({
-        repoRoot: this.orchestratorRoot,
+        repoRoot: this.janusRoot,
         proposal,
         apply,
       });

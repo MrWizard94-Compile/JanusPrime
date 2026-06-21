@@ -1,5 +1,5 @@
-export { loadSoul, excerptSoul, hashSoul } from "./soul.js";
-export { applySoulAutoFixes, applySoulAutoFixesToFiles } from "./soul-auto-fix.js";
+export { loadClaude, excerptClaude, hashClaude } from "./claude.js";
+export { applyClaudeAutoFixes, applyClaudeAutoFixesToFiles } from "./claude-auto-fix.js";
 export {
   findJanusRoot,
   loadJanusConfig,

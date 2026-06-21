@@ -22,6 +22,10 @@ export function runAstLayer(proposal: PatchProposal): LayerResult {
       });
     }
 
+    if (!isMixinCandidatePath(file.path)) {
+      continue;
+    }
+
     const mixinCount = analysis.annotations.filter((entry) => entry.kind === "Mixin").length;
     if (mixinCount === 0) {
       errors.push({
@@ -49,4 +53,10 @@ export function runAstLayer(proposal: PatchProposal): LayerResult {
     errors,
     duration_ms: Date.now() - started,
   };
+}
+
+function isMixinCandidatePath(relativePath: string): boolean {
+  const normalized = relativePath.replace(/\\/g, "/");
+  const baseName = normalized.split("/").pop() ?? "";
+  return normalized.includes("/mixin/") || baseName.startsWith("Mixin");
 }

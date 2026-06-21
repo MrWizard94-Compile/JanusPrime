@@ -1,4 +1,4 @@
-import { mkdir } from "node:fs/promises";
+import { access, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import {
   formatBranchName,
@@ -18,6 +18,12 @@ export interface CreateWorktreeOptions {
   taskId: string;
   baseBranch?: string;
   sequence?: number;
+  /**
+   * Tear down any existing worktree/branch for this task and rebuild from
+   * baseBranch. Without this, create() is idempotent and returns the existing
+   * worktree as-is (which may be pinned to a stale base).
+   */
+  recreate?: boolean;
 }
 
 export class WorktreeManager {
@@ -96,8 +102,12 @@ export class WorktreeManager {
     await mkdir(worktreesDir, { recursive: true });
 
     const existing = await this.findByTaskId(options.taskId);
-    if (existing) {
+    if (existing && !options.recreate) {
       return existing;
+    }
+    if (existing) {
+      // recreate requested — tear the stale worktree down so it rebuilds from baseBranch.
+      await this.destroy(options.taskId);
     }
 
     const branchExists = await runGit(this.repoRoot, [
@@ -113,7 +123,22 @@ export class WorktreeManager {
         baseBranch,
       ]);
       assertGitSuccess(createBranch, `branch create ${branch}`);
+    } else if (options.baseBranch) {
+      // Branch lingers from a prior run (no live worktree holds it now). Re-point
+      // it to the explicitly requested base so we never validate stale code.
+      const resetBranch = await runGit(this.repoRoot, [
+        "branch",
+        "-f",
+        branch,
+        baseBranch,
+      ]);
+      assertGitSuccess(resetBranch, `branch reset ${branch} -> ${baseBranch}`);
     }
+
+    // A directory can linger on disk if a previous teardown failed (Windows can
+    // refuse to delete worktrees containing node_modules/build). `worktree add`
+    // aborts on a non-empty target, so clear any orphaned dir first.
+    await this.clearOrphanedDir(worktreePath);
 
     const add = await runGit(this.repoRoot, [
       "worktree",
@@ -137,25 +162,53 @@ export class WorktreeManager {
       throw new Error(`No worktree found for task: ${taskId}`);
     }
 
-    const remove = await runGit(this.repoRoot, [
-      "worktree",
-      "remove",
-      entry.path,
-      "--force",
-    ]);
-    assertGitSuccess(remove, `worktree remove ${entry.path}`);
+    await this.removeWorktreePath(entry.path);
 
     const deleteBranch = await runGit(this.repoRoot, ["branch", "-D", entry.branch]);
-    if (deleteBranch.exitCode !== 0) {
+    if (deleteBranch.exitCode !== 0 && !isBranchAlreadyGone(deleteBranch.stderr)) {
       const detail = deleteBranch.stderr.trim() || deleteBranch.stdout.trim();
       throw new Error(`Git branch delete failed (exit ${deleteBranch.exitCode}): ${detail}`);
     }
+  }
+
+  private async removeWorktreePath(worktreePath: string): Promise<void> {
+    const remove = await runGit(this.repoRoot, [
+      "worktree",
+      "remove",
+      worktreePath,
+      "--force",
+    ]);
+    if (remove.exitCode === 0) {
+      return;
+    }
+
+    // Windows fails `worktree remove` with "Directory not empty" when the tree
+    // contains node_modules/build artifacts git did not create. Force-remove the
+    // directory ourselves, then prune git's now-dangling worktree metadata.
+    await rm(worktreePath, { recursive: true, force: true });
+    const prune = await runGit(this.repoRoot, ["worktree", "prune"]);
+    assertGitSuccess(prune, "worktree prune");
+  }
+
+  private async clearOrphanedDir(worktreePath: string): Promise<void> {
+    try {
+      await access(worktreePath);
+    } catch {
+      return;
+    }
+    await rm(worktreePath, { recursive: true, force: true });
+    const prune = await runGit(this.repoRoot, ["worktree", "prune"]);
+    assertGitSuccess(prune, "worktree prune");
   }
 
   async findByTaskId(taskId: string): Promise<WorktreeEntry | null> {
     const entries = await this.list();
     return entries.find((entry) => entry.task_id === taskId) ?? null;
   }
+}
+
+function isBranchAlreadyGone(stderr: string): boolean {
+  return /not found|cannot delete branch .* not found/i.test(stderr);
 }
 
 function extractTaskIdFromBranch(branch: string): string | null {

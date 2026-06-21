@@ -14,10 +14,33 @@ export async function applyPatch(
   }
 }
 
-export async function revertWorkspace(workspaceRoot: string): Promise<void> {
-  const restore = await runGit(workspaceRoot, ["restore", "--staged", "--worktree", "."]);
-  assertGitSuccess(restore, "restore worktree");
+/** Revert only paths touched by a patch — never `git clean` the whole worktree. */
+export async function revertWorkspace(
+  workspaceRoot: string,
+  proposal?: PatchProposal,
+): Promise<void> {
+  const paths = proposal?.files.map((file) => file.path) ?? [];
 
-  const clean = await runGit(workspaceRoot, ["clean", "-fd"]);
-  assertGitSuccess(clean, "clean worktree");
+  if (paths.length === 0) {
+    return;
+  }
+
+  const restore = await runGit(workspaceRoot, [
+    "restore",
+    "--staged",
+    "--worktree",
+    "--",
+    ...paths,
+  ]);
+  if (restore.exitCode !== 0) {
+    // Untracked paths are not restorable; clean only those patch paths.
+    const clean = await runGit(workspaceRoot, ["clean", "-fd", "--", ...paths]);
+    assertGitSuccess(clean, "clean patched paths");
+    return;
+  }
+
+  const clean = await runGit(workspaceRoot, ["clean", "-fd", "--", ...paths]);
+  if (clean.exitCode !== 0) {
+    assertGitSuccess(clean, "clean patched paths");
+  }
 }

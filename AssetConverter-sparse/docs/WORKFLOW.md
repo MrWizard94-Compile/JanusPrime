@@ -1,8 +1,8 @@
-# Workflow
+﻿# Workflow
 
 Step-by-step guide for the Omni32 asset engine: autonomous batch processing, manual per-step control, git flow, and mod queue maintenance.
 
-## Principles (SOUL.md)
+## Principles (CLAUDE.md)
 
 - **Sources live in the repo** under `sources/` — never at the project root or outside git.
 - **Pull commits immediately** — `ac.py pull` runs `git_commit_sources.py` after every clone/extract.

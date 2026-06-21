@@ -1,4 +1,4 @@
-# Project Janus
+﻿# Project Janus
 
 Dual-AI development platform (**Aether**) — Claude orchestrates, Grok executes, a deterministic Validation Kernel gates all filesystem mutations.
 
@@ -65,7 +65,7 @@ Set `AETHER_TASK_ID` and run `packages/mcp-server/dist/bin.js` via stdio. See `e
 
 - [docs/phase1/orchestration.md](./docs/phase1/orchestration.md) — Phase 1 delegation flow and plan format
 - [AETHER_ARCHITECTURE.md](./AETHER_ARCHITECTURE.md) — system architecture (locked v1.0)
-- [SOUL.md](./SOUL.md) — engineering standards and operational doctrine
+- [CLAUDE.md](./CLAUDE.md) — engineering standards and operational doctrine
 - [references/](./references/) — verified APIs, patterns, and research notes
 
 ## Repository

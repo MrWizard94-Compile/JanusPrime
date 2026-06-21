@@ -10,6 +10,8 @@
   "scripts": {
     "build": "pnpm --dir Project-Janus build",
     "test": "pnpm --dir Project-Janus test",
+    "typecheck": "pnpm --dir Project-Janus typecheck",
+    "lint": "pnpm --dir Project-Janus lint",
     "janus": "pnpm --dir Project-Janus aether",
     "memory:up": "docker compose up -d",
     "memory:down": "docker compose down",

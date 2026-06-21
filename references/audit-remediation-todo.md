@@ -1,4 +1,4 @@
-# JanusPrime Audit Remediation TODO
+﻿# JanusPrime Audit Remediation TODO
 
 **Source:** [system-audit-2026-06-19.md](./system-audit-2026-06-19.md)  
 **Started:** 2026-06-19  
@@ -12,7 +12,7 @@ All tracked items below are **complete** unless noted as deferred (Phase 4 IDE b
 
 | ID | Task | Status |
 |----|------|--------|
-| C1 | SOUL rules concatenated in `runRulesLayer` + cross-profile test | **done** |
+| C1 | CLAUDE rules concatenated in `runRulesLayer` + cross-profile test | **done** |
 | C2 | `RelClient` sends `{ arguments: args }` | **done** |
 | C3 | REL anonymous principal → `service` when auth disabled | **done** |
 
@@ -41,9 +41,9 @@ All tracked items below are **complete** unless noted as deferred (Phase 4 IDE b
 | M2 | `queryContextSlices` LLM fallback gated (`allow_query_llm_fallback`, default `false`) | **done** |
 | M3 | Tests for `cli` (`argv`, `program`) and `mcp-server` (`janus-resources`) | **done** |
 | M4 | Tests for `doc:rel-state` claude vs grok injection | **done** |
-| M5 | Unit tests for `ensureSoulContextRef` | **done** |
+| M5 | Unit tests for `ensureClaudeContextRef` | **done** |
 | M6 | `python-sandbox-v1` wired in autonomous loop via `PythonSandboxExecutor` | **done** |
-| M7–M8 | Doc path sync (SOUL §9, AGENTS.md, `references/unified-architecture.md`) | **done** |
+| M7–M8 | Doc path sync (CLAUDE §9, AGENTS.md, `references/unified-architecture.md`) | **done** |
 | M9 | Root `.github/workflows/ci.yml` (Project-Janus + Smart-Library) | **done** |
 | M10 | REL `pyproject.toml` packaging fix | **done** |
 | M11 | Asset strategy documented — vendored pipeline in repo + `scripts/setup-assetconverter.ps1` sparse clone | **done** |
@@ -82,7 +82,7 @@ All tracked items below are **complete** unless noted as deferred (Phase 4 IDE b
 | Item | Status |
 |------|--------|
 | Architecture scaffold | **done** — [phase4-theia-ide.md](./phase4-theia-ide.md) |
-| Theia product implementation | **deferred** per SOUL §10 |
+| Theia product implementation | **deferred** per CLAUDE §10 |
 
 ---
 

@@ -1,8 +1,8 @@
-{
+﻿{
   "parent": {
     "assignee": "claude",
     "validation_profile": "typescript-v1",
-    "context_refs": ["doc:soul", "arch:janus-unified", "doc:handoff-protocol"],
+    "context_refs": ["doc:claude", "arch:janus-unified", "doc:handoff-protocol"],
     "spec": {
       "objective": "Node Core phase 5 — In Control spawn export and KubeJS extraction alert bridge",
       "acceptance_criteria": [

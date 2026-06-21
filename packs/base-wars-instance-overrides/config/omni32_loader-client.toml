@@ -1,0 +1,6 @@
+[assets]
+	root = "C:/Projects/AssetConverter/output/assets"
+	activeOnly = true
+	logDiscovery = true
+	extraNamespaces = []
+	excludedNamespaces = []

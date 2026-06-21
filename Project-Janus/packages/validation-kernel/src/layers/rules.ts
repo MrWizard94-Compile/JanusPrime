@@ -1,7 +1,7 @@
 import type { PatchProposal, TaskSpec, ValidationProfile, ValidationError } from "@aether/shared";
 import { runAssetAuditRules } from "../rules/asset-audit.js";
 import { runNeoForgeMixinRules } from "../rules/neoforge-mixin.js";
-import { runSoulEngineeringRules } from "../rules/soul-engineering.js";
+import { runClaudeEngineeringRules } from "../rules/claude-engineering.js";
 import { runTypeScriptRules } from "../rules/typescript.js";
 import type { LayerResult } from "../types.js";
 
@@ -16,7 +16,7 @@ export function runRulesLayer(
   context: RulesLayerContext,
 ): LayerResult {
   const started = Date.now();
-  let errors: ValidationError[] = runSoulEngineeringRules(context.proposal);
+  let errors: ValidationError[] = runClaudeEngineeringRules(context.proposal);
 
   if (profile.id === "neoforge-mixin-v1") {
     errors = errors.concat(

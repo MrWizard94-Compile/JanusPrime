@@ -1,0 +1,198 @@
+{
+  "parent": {
+    "assignee": "claude",
+    "validation_profile": "forge-mod-v1",
+    "context_refs": ["doc:claude", "arch:janus-unified", "doc:handoff-protocol"],
+    "spec": {
+      "objective": "Base Wars overhaul — renewable contested resource economy + dead-world terrain. Full design spec: references/basewars-overhaul-spec.md. Replaces the AdLods LOD-mirroring approach with extractor-node taps, adds Liquid Fire fuel, Create output nerf, dead-tan surface grass, and contested below-Y0 lush caverns.",
+      "constraints": [
+        "All children implement against references/basewars-overhaul-spec.md — that file is canonical.",
+        "Server-tunable values must be config-driven, not hardcoded.",
+        "Workload: nodecore (Forge 1.20.1). Switch a child to neoforge-mixin-v1 if it requires mixins."
+      ],
+      "files_in_scope": [],
+      "acceptance_criteria": [
+        "All nine children accepted through the validation gate",
+        "gradlew build passes for the nodecore workload",
+        "AdLods LOD-mirroring removed; extractor-node economy functional"
+      ]
+    }
+  },
+  "children": [
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude"],
+        "spec": {
+          "objective": "Ore-node worldgen — indestructible permanent node fixtures generated in geographic metal-type CLUSTERS (copper region, iron region, etc.), with output TIERS (tier-3 out-produces tier-1). Replaces the AdLods finite-deposit generator. See spec §1.1, §6.",
+          "constraints": [
+            "Nodes indestructible/unmovable; not strip-mineable",
+            "Metal types cluster by region, not uniform scatter",
+            "Frequency, spacing, cluster size, tier rates all config-driven",
+            "No dependencies — foundational child"
+          ],
+          "files_in_scope": ["src/main/java/com/mrwizard94/nodecore/worldgen/", "src/main/java/com/mrwizard94/nodecore/block/node/", "src/main/resources/data/nodecore/worldgen/"],
+          "acceptance_criteria": ["Clustered typed/tiered nodes generate", "Nodes are indestructible", "Config controls frequency/spacing/cluster/tiers", "gradlew build passes"]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude"],
+        "spec": {
+          "objective": "Extractor multiblock — player-built drill attached to a node (ONE per node). Create rotational drive; fuel boost ladder charcoal<coal<lava<Liquid Fire (per-fuel boost config-driven); lava pipe-in for speed. Output buffer with BACKPRESSURE (full=pause). Power loss => pause + slow buffer decay. Raidable structure; node indestructible. See spec §1.2-§1.4.",
+          "constraints": [
+            "Depends on child 1 (ore-node worldgen)",
+            "Drive = Create rotational power",
+            "Boost multipliers + consumption + buffer size + decay rate config-driven",
+            "Extractor destructible (raidable); node never destroyed"
+          ],
+          "files_in_scope": ["src/main/java/com/mrwizard94/nodecore/block/extractor/", "src/main/java/com/mrwizard94/nodecore/blockentity/", "src/main/java/com/mrwizard94/nodecore/integration/create/"],
+          "acceptance_criteria": ["Multiblock validates + pumps ore to buffer", "Fuel ladder boosts production; lava pipeable", "Backpressure pauses; power loss pauses + decays", "Raidable; config-driven", "gradlew build passes"]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude"],
+        "spec": {
+          "objective": "No-build aura — config-radius no-block-placement zone around each node that WHITELISTS only the extractor's own multiblock parts. Keeps taps exposed (un-fortressable). See spec §1.5.",
+          "constraints": [
+            "Depends on child 1 (node) and coordinates with child 2 (extractor whitelist)",
+            "Radius, enable toggle, and whitelisted-block set all config-driven",
+            "May require a placement-event mixin — switch to neoforge-mixin-v1 if so"
+          ],
+          "files_in_scope": ["src/main/java/com/mrwizard94/nodecore/event/", "src/main/java/com/mrwizard94/nodecore/config/"],
+          "acceptance_criteria": ["Non-whitelisted placement blocked within radius", "Extractor parts still placeable", "Radius/toggle/whitelist config-driven", "gradlew build passes"]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude"],
+        "spec": {
+          "objective": "Liquid Fire — custom Forge fluid + fluid block + bucket, top-tier fuel. Collection: cauldron under soul sand with lava on top fills slowly. Tint #00FBFF (soul-fire blue). Emit ParticleTypes.SOUL_FIRE_FLAME from the fluid block. Fuel burn time 32000-40000 ticks. See spec §4.",
+          "constraints": [
+            "No dependencies",
+            "Cauldron-under-soulsand-with-lava-on-top collection mechanic",
+            "Registered as furnace/extractor fuel at the specified burn time"
+          ],
+          "files_in_scope": ["src/main/java/com/mrwizard94/nodecore/fluid/", "src/main/java/com/mrwizard94/nodecore/item/", "src/main/resources/assets/nodecore/"],
+          "acceptance_criteria": ["Liquid Fire fluid/block/bucket registered", "Cauldron collection works", "Tint #00FBFF + soul-fire particles render", "Burn time 32000-40000; usable as extractor fuel", "gradlew build passes"]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude"],
+        "spec": {
+          "objective": "Create output nerf — keep Create grinding/washing/haunting recipes but SEVERELY reduce their metal/resource output, so they are the survivable baseline grind while extractor taps are the multiplier. See spec §1.6.",
+          "constraints": [
+            "No dependencies",
+            "Reduce output, do not remove the recipes",
+            "Reduction factor config-driven where feasible"
+          ],
+          "files_in_scope": ["src/main/resources/data/create/recipe/", "src/main/resources/data/nodecore/recipe/"],
+          "acceptance_criteria": ["Crushing/washing/haunting yields severely reduced", "Recipes still functional", "gradlew build passes"]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude"],
+        "spec": {
+          "objective": "Surface dead-tan grass — global grass color/tint override so all surface grass renders uniformly dead-tan (no green islands on surface; green life is underground only). See spec §3.",
+          "constraints": [
+            "No dependencies",
+            "Global grass-color provider / biome tint override",
+            "Likely client-side color provider; switch to neoforge-mixin-v1 if a mixin is needed"
+          ],
+          "files_in_scope": ["src/main/java/com/mrwizard94/nodecore/client/", "src/main/resources/assets/nodecore/"],
+          "acceptance_criteria": ["Surface grass renders dead-tan globally", "Underground/cavern flora unaffected", "gradlew build passes"]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude"],
+        "spec": {
+          "objective": "Growth-tick booster — DEPENDENCY-FIRST: locate any existing growth-tick-booster attempt in the NodeCore source, assess its state, then reuse/finish it or build it fresh. Accelerates plant/tree/crop growth inside lush caverns. Blocks child 8. See spec §5.",
+          "constraints": [
+            "Start by searching the workload source for an existing attempt; report findings",
+            "Reuse/finish if present, build if not",
+            "Boost rate config-driven; blocks the lush-cavern child"
+          ],
+          "files_in_scope": ["src/main/java/com/mrwizard94/nodecore/"],
+          "acceptance_criteria": ["Existing attempt located/assessed (or absence confirmed)", "Working growth-tick booster present", "Boost rate config-driven", "gradlew build passes"]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude"],
+        "spec": {
+          "objective": "Lush underground caverns — real worldgen, MASSIVE lush caverns ONLY below Y0, naturally generating surface flora underground (trees via Dynamic Trees, grass, ferns), big enough for tree/crop farms, with the growth-tick booster applied. Contested/raidable like ore taps. See spec §2.",
+          "constraints": [
+            "Depends on child 7 (growth-tick booster)",
+            "Only spawn below Y 0",
+            "Dynamic Trees integration for trees; contested/raidable",
+            "Frequency/size config-driven"
+          ],
+          "files_in_scope": ["src/main/java/com/mrwizard94/nodecore/worldgen/", "src/main/java/com/mrwizard94/nodecore/integration/dynamictrees/", "src/main/resources/data/nodecore/worldgen/"],
+          "acceptance_criteria": ["Massive lush caverns generate below Y0", "Trees/grass/ferns generate inside; growth booster active", "Contested/raidable", "Config-driven; gradlew build passes"]
+        }
+      }
+    },
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude"],
+        "spec": {
+          "objective": "AdLods teardown — remove the superseded AdLods sync + Large Ore Deposit LOD-mirroring system and its worldgen hooks, now replaced by extractor-node economy. See spec §6.",
+          "constraints": [
+            "Remove AdLods bridge + LOD-mirroring worldgen hooks",
+            "Do not break the new ore-node worldgen (child 1)",
+            "Can run independently of other children"
+          ],
+          "files_in_scope": ["src/main/java/com/mrwizard94/nodecore/adlods/", "src/main/java/com/mrwizard94/nodecore/bridge/"],
+          "acceptance_criteria": ["AdLods system removed", "No dangling references; gradlew build passes"]
+        }
+      }
+    }
+  ],
+  "provision": { "auto_worktree": false, "auto_prepare": false }
+}

@@ -1,25 +1,24 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { expandConfigPath, findJanusRoot, loadEnvFile, loadJanusConfig } from "./config.js";
 
+const projectJanusRoot = join(import.meta.dirname, "../../..");
+const janusRoot = join(import.meta.dirname, "../../../..");
+
 describe("janus config", () => {
   it("finds janus.config.json from Project-Janus subdirectory", async () => {
-    const root = await findJanusRoot(
-      "C:\\Users\\Bulkl\\OneDrive\\Desktop\\Janus\\Project-Janus\\packages\\janus-integrations",
-    );
+    const root = await findJanusRoot(join(projectJanusRoot, "packages/janus-integrations"));
     expect(root).toContain("Janus");
   });
 
   it("loads and parses config", async () => {
-    const { config } = await loadJanusConfig(
-      "C:\\Users\\Bulkl\\OneDrive\\Desktop\\Janus\\Project-Janus",
-    );
+    const { config } = await loadJanusConfig(projectJanusRoot);
     expect(config.name).toBe("janusprime");
     expect(config.components.memory.url).toBe("http://localhost:8000");
     expect(config.components.assets.root).toBe("../../../../../Projects/AssetConverter");
-    expect(config.doctrine.soul_path).toBe("SOUL.md");
+    expect(config.doctrine.claude_path).toBe("CLAUDE.md");
     expect(config.doctrine.inject_into_brief).toBe(true);
     expect(config.components.cognition?.root).toBe("env:REL_COGNITION_ROOT");
   });
@@ -54,7 +53,9 @@ describe("loadEnvFile", () => {
 });
 
 describe("expandConfigPath", () => {
-  const janusRoot = "C:\\Users\\me\\Janus";
+  // Build fixtures with path.resolve so they are absolute on the host platform
+  // (the CI runner is Linux, where "C:\..." is not an absolute path).
+  const janusRoot = resolve("/janus-test-root");
 
   afterEach(() => {
     vi.unstubAllEnvs();
@@ -62,21 +63,21 @@ describe("expandConfigPath", () => {
 
   it("resolves relative paths against janus root", () => {
     expect(expandConfigPath(janusRoot, "Project-Janus")).toBe(
-      "C:\\Users\\me\\Janus\\Project-Janus",
+      resolve(janusRoot, "Project-Janus"),
     );
   });
 
   it("expands env: prefix from process.env", () => {
-    vi.stubEnv("REL_COGNITION_ROOT", "C:/REL_Codex_Variant");
-    expect(expandConfigPath(janusRoot, "env:REL_COGNITION_ROOT")).toBe(
-      "C:\\REL_Codex_Variant",
-    );
+    const target = resolve("/rel-codex-variant");
+    vi.stubEnv("REL_COGNITION_ROOT", target);
+    expect(expandConfigPath(janusRoot, "env:REL_COGNITION_ROOT")).toBe(target);
   });
 
   it("falls back to REL_BUILD_CONTEXT when REL_COGNITION_ROOT is unset", () => {
     delete process.env.REL_COGNITION_ROOT;
-    vi.stubEnv("REL_BUILD_CONTEXT", "D:/REL");
-    expect(expandConfigPath(janusRoot, "env:REL_COGNITION_ROOT")).toBe("D:\\REL");
+    const target = resolve("/rel-build-context");
+    vi.stubEnv("REL_BUILD_CONTEXT", target);
+    expect(expandConfigPath(janusRoot, "env:REL_COGNITION_ROOT")).toBe(target);
   });
 
   it("throws when env: variable is unset", () => {

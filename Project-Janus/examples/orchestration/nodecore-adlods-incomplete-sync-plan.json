@@ -1,0 +1,52 @@
+{
+  "parent": {
+    "assignee": "claude",
+    "validation_profile": "typescript-v1",
+    "context_refs": ["doc:claude", "arch:janus-unified", "doc:handoff-protocol"],
+    "spec": {
+      "objective": "Node Core AdLods auto-registration — sync in-progress deposits (deferred > 0)",
+      "constraints": [
+        "All mutations via manual patch_mode through forge-mod-v1 gate",
+        "Root cause: isComplete() requires deferred==0; Base Wars save has 23/23 incomplete deposits",
+        "Subagent implementer + patch submit --apply + seed"
+      ],
+      "files_in_scope": [],
+      "acceptance_criteria": [
+        "AdLods generated deposits link without isComplete gate",
+        "Chunk deferred map scanned on chunk load",
+        "gradlew build passes",
+        "Child accepted and seeded"
+      ]
+    }
+  },
+  "children": [
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude", "doc:handoff-protocol"],
+        "spec": {
+          "objective": "Remove isComplete gate; sync generated + deferred AdLods deposits; INFO-level sync summary",
+          "files_in_scope": [
+            "src/main/java/com/mrwizard94/nodecore/integration/NodeAdlodsBridge.java",
+            "src/main/java/com/mrwizard94/nodecore/event/NodeAdlodsSyncHandler.java",
+            "src/main/java/com/mrwizard94/nodecore/worldgen/NodeLodBridge.java"
+          ],
+          "constraints": [
+            "Skip TargetGenResult.isEmpty() and non-Deposit targets (Geode)",
+            "Keep SYNCED dedup; use name field with target fallback",
+            "Log linked count at INFO on server start"
+          ],
+          "acceptance_criteria": [
+            "gradlew build exits 0",
+            "Task accepted",
+            "JAR deployed to Base Wars instance"
+          ]
+        }
+      }
+    }
+  ],
+  "provision": { "auto_worktree": true, "auto_prepare": true }
+}

@@ -1,4 +1,4 @@
-"""FastAPI gateway for the Smart Code Library core engine."""
+﻿"""FastAPI gateway for the Smart Code Library core engine."""
 
 from smart_code_lib.config import load_env
 
@@ -39,7 +39,7 @@ class QueryRequest(BaseModel):
 
 
 class QueryContextRequest(BaseModel):
-    """Retrieval-only query — no LLM synthesis (SOUL token policy)."""
+    """Retrieval-only query — no LLM synthesis (CLAUDE token policy)."""
 
     query: str
     limit: int = 3
@@ -63,7 +63,7 @@ class RepairErrorEntry(BaseModel):
 
 
 class SeedRepairRequest(BaseModel):
-    """Structured validation-repair pattern for memory seeding (SOUL §6)."""
+    """Structured validation-repair pattern for memory seeding (CLAUDE §6)."""
 
     objective: str
     errors: list[RepairErrorEntry]
@@ -156,7 +156,7 @@ async def seed_repair_pattern(
     payload: SeedRepairRequest,
     _: None = Depends(require_write_api_key),
 ):
-    """Index a validation repair pattern after a verified heal (SOUL §6)."""
+    """Index a validation repair pattern after a verified heal (CLAUDE §6)."""
     _ensure_ready()
     content = _format_repair_seed_content(payload)
     _validate_code_size(content)
@@ -197,7 +197,7 @@ async def smart_query(payload: QueryRequest):
 
 @app.get("/doctrine/status")
 async def doctrine_status(content_hash: str):
-    """Check whether SOUL.md content hash is present in Operational Doctrine memory."""
+    """Check whether CLAUDE.md content hash is present in Operational Doctrine memory."""
     _ensure_ready()
     stored_hashes = db.content_hashes_for_category("Operational Doctrine")
     return {

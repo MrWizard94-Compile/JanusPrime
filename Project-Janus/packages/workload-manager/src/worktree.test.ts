@@ -37,6 +37,13 @@ describe("Workload worktrees", () => {
 
     const init = await runGit(repoPath, ["init", "-b", "main"]);
     assertGitSuccess(init, "git init");
+    // Set a committer identity local to the temp repo so commits work on hosts
+    // without a global git identity (e.g. CI runners) — `--author` below only
+    // sets the author, not the committer.
+    const setEmail = await runGit(repoPath, ["config", "user.email", "ci@janusprime.local"]);
+    assertGitSuccess(setEmail, "git config user.email");
+    const setName = await runGit(repoPath, ["config", "user.name", "JanusPrime CI"]);
+    assertGitSuccess(setName, "git config user.name");
     await writeFile(join(repoPath, "README.md"), "# workload\n", "utf8");
     const commit = await runGit(repoPath, ["add", "."]);
     assertGitSuccess(commit, "git add");

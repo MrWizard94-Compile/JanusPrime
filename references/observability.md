@@ -1,4 +1,4 @@
-# Observability
+﻿# Observability
 
 How to inspect JanusPrime service health and logs today, plus planned metrics.
 
@@ -43,7 +43,7 @@ Component-specific probes:
 |---------|----------------|
 | `janus status` | Memory, cognition, asset queue rollup |
 | `janus rel status` | REL reachability and state summary |
-| `janus doctrine status` | SOUL.md freshness in memory |
+| `janus doctrine status` | CLAUDE.md freshness in memory |
 
 ---
 

@@ -7,4 +7,4 @@ export { readReceipt, writeReceipt, receiptMatchesProposal } from "./receipt.js"
 export type { ValidationResult, LayerResult } from "./types.js";
 export { parseAssetModId } from "./rules/asset-task.js";
 export { parseAssetAction } from "./rules/asset-audit.js";
-export { runSoulEngineeringRules } from "./rules/soul-engineering.js";
+export { runClaudeEngineeringRules } from "./rules/claude-engineering.js";

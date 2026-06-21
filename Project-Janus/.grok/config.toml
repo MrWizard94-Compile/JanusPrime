@@ -1,0 +1,9 @@
+[mcp_servers.janus]
+command = "node"
+args = ["C:/Projects/Janus/Project-Janus/packages/mcp-server/dist/bin.js"]
+enabled = true
+
+[mcp_servers.janus.env]
+AETHER_REPO_ROOT = "C:/Projects/Janus"
+AETHER_TASK_ID = "task-07d0f3a7-aac9-42c2-9aa7-5d7b290d171d"
+JANUS_ROOT = "C:/Projects/Janus"

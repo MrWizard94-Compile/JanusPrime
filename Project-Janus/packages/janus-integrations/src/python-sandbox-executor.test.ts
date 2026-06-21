@@ -40,7 +40,7 @@ const testConfig: JanusConfig = {
     rel_context_max_chars: 800,
   },
   doctrine: {
-    soul_path: "SOUL.md",
+    claude_path: "CLAUDE.md",
     inject_into_brief: true,
     inject_into_mcp_instructions: true,
     seed_on_boot: false,

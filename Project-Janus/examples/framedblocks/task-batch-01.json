@@ -1,8 +1,8 @@
-{
+﻿{
   "assignee": "claude",
   "workload": "framedblocks",
   "context_refs": [
-    "doc:soul",
+    "doc:claude",
     "arch:framedblocks-mixin-pattern",
     "doc:handoff-protocol",
     "ref:validation-rules",

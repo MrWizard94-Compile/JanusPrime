@@ -1,6 +1,6 @@
-# References Index
+﻿# References Index
 
-Workspace-level reference docs for JanusPrime. Load [SOUL.md](../SOUL.md) and [AGENTS.md](../AGENTS.md) first.
+Workspace-level reference docs for JanusPrime. Load [CLAUDE.md](../CLAUDE.md) and [AGENTS.md](../AGENTS.md) first.
 
 | Document | Description |
 |----------|-------------|

@@ -1,8 +1,8 @@
-# AGENTS.md — Supervisory Workflow
+﻿# AGENTS.md — Supervisory Workflow
 
 Guidance for AI agents and contributors working on the Smart Code Library.
 
-**Janus doctrine:** Load **[../SOUL.md](../SOUL.md)** first — it is the workspace single source of truth. Memory writes must follow SOUL §1 (validation before mutation) and §6 (verified heal write-back only).
+**Janus doctrine:** Load **[../CLAUDE.md](../CLAUDE.md)** first — it is the workspace single source of truth. Memory writes must follow CLAUDE §1 (validation before mutation) and §6 (verified heal write-back only).
 
 ---
 

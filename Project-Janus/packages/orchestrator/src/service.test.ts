@@ -126,13 +126,13 @@ describe("OrchestratorService", () => {
 
     expect(parent.assignee).toBe("claude");
     expect(parent.context_refs).toContain("aether:provision:auto_worktree:true");
-    expect(parent.context_refs).toContain("doc:soul");
+    expect(parent.context_refs).toContain("doc:claude");
     expect(parent.context_refs).toContain("parent-context");
 
     expect(children).toHaveLength(2);
     expect(children.every((child) => child.parent_id === parent.id)).toBe(true);
     expect(children[0]?.assignee).toBe("grok");
-    expect(children[0]?.context_refs).toContain("doc:soul");
+    expect(children[0]?.context_refs).toContain("doc:claude");
     expect(children[0]?.context_refs).toContain("aether:patch_mode:identity");
     expect(children[1]?.context_refs).toContain("aether:patch_mode:manual");
   });
@@ -229,7 +229,7 @@ describe("OrchestratorService", () => {
       files_in_scope: ["README.md"],
       objective: "Touch README",
       validation_profile: "typescript-v1",
-      context_refs: ["doc:soul", "child-context"],
+      context_refs: ["doc:claude", "child-context"],
     });
     expect(brief.workspace_root).toContain(child.worktree ?? "");
   });

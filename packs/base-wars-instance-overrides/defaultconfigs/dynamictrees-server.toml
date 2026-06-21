@@ -1,0 +1,5 @@
+# Base Wars dead world — Dynamic Trees must not repopulate the surface.
+[world]
+	podzolGen = false
+	worldGen = false
+	dimensionsBlacklist = []

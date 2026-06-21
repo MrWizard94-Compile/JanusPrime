@@ -1,0 +1,14 @@
+{
+  "name": "resolve-task-context",
+  "description": "Resolve all context_refs for the bound task into markdown documents",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "task_id": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  }
+}

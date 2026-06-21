@@ -1,0 +1,31 @@
+﻿{
+  "parent": {
+    "assignee": "claude",
+    "validation_profile": "typescript-v1",
+    "context_refs": ["doc:claude", "doc:handoff-protocol"],
+    "spec": {
+      "objective": "Executor compliance smoke — prove forge-mod-v1 gate on Node Core",
+      "constraints": ["Single-file identity patch"],
+      "files_in_scope": [],
+      "acceptance_criteria": ["Child accepted under forge-mod-v1"]
+    }
+  },
+  "children": [
+    {
+      "assignee": "grok",
+      "patch_mode": "identity",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude", "doc:handoff-protocol"],
+        "spec": {
+          "objective": "Identity smoke: NodeCore.java",
+          "constraints": [],
+          "files_in_scope": ["src/main/java/com/mrwizard94/nodecore/NodeCore.java"],
+          "acceptance_criteria": ["gradlew build exits 0", "Task accepted"]
+        }
+      }
+    }
+  ],
+  "provision": { "auto_worktree": true, "auto_prepare": true }
+}

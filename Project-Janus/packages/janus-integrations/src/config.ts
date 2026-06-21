@@ -66,7 +66,7 @@ const JanusConfigSchema = z.object({
     }),
   doctrine: z
     .object({
-      soul_path: z.string().default("SOUL.md"),
+      claude_path: z.string().default("CLAUDE.md"),
       inject_into_brief: z.boolean().default(true),
       inject_into_mcp_instructions: z.boolean().default(true),
       seed_on_boot: z.boolean().default(false),
@@ -74,7 +74,7 @@ const JanusConfigSchema = z.object({
       mcp_instruction_excerpt_max_chars: z.number().int().positive().default(1500),
     })
     .default({
-      soul_path: "SOUL.md",
+      claude_path: "CLAUDE.md",
       inject_into_brief: true,
       inject_into_mcp_instructions: true,
       seed_on_boot: false,

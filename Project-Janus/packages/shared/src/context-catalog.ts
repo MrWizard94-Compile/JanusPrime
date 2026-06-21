@@ -4,27 +4,27 @@ export interface ContextEntry {
   files: readonly string[];
 }
 
-export const SOUL_CONTEXT_REF = "doc:soul" as const;
+export const CLAUDE_CONTEXT_REF = "doc:claude" as const;
 export const REL_STATE_CONTEXT_REF = "doc:rel-state" as const;
 
-/** Live REL excerpts — orchestrator assignee only (SOUL token policy). */
+/** Live REL excerpts — orchestrator assignee only (CLAUDE token policy). */
 export const ORCHESTRATOR_ONLY_CONTEXT_REFS: ReadonlySet<string> = new Set([
   REL_STATE_CONTEXT_REF,
 ]);
 
-/** Ensure every task carries canonical doctrine per SOUL.md §2. */
-export function ensureSoulContextRef(contextRefs: readonly string[]): string[] {
-  if (contextRefs.includes(SOUL_CONTEXT_REF)) {
+/** Ensure every task carries canonical doctrine per CLAUDE.md §2. */
+export function ensureClaudeContextRef(contextRefs: readonly string[]): string[] {
+  if (contextRefs.includes(CLAUDE_CONTEXT_REF)) {
     return [...contextRefs];
   }
-  return [SOUL_CONTEXT_REF, ...contextRefs];
+  return [CLAUDE_CONTEXT_REF, ...contextRefs];
 }
 
 export const CONTEXT_CATALOG: Record<string, ContextEntry> = {
-  "doc:soul": {
-    ref: "doc:soul",
-    title: "SOUL.md — Janus operational doctrine (SSOT)",
-    files: ["../SOUL.md"],
+  "doc:claude": {
+    ref: "doc:claude",
+    title: "CLAUDE.md — Janus operational doctrine (SSOT)",
+    files: ["../CLAUDE.md"],
   },
   "arch:framedblocks-mixin-pattern": {
     ref: "arch:framedblocks-mixin-pattern",

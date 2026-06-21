@@ -1,4 +1,4 @@
-# JanusPrime
+﻿# JanusPrime
 
 **JanusPrime** is a fully autonomous, self-repairing, token-efficient development and asset generation platform. It unifies orchestration (Aether), semantic memory (Smart-Library), and the Omni32 asset pipeline into one validation-gated system.
 
@@ -11,7 +11,7 @@
 | Orchestrator | `Project-Janus/` | Task delegation, validation kernel, git worktrees |
 | Memory | `Smart-Library/` | Semantic retrieval, sandboxed heal, doctrine storage |
 | Assets | `AssetConverter-sparse/` | Texture pull → upscale → build (Omni32) |
-| Doctrine | `SOUL.md` | Single source of truth for all agents and gates |
+| Doctrine | `CLAUDE.md` | Single source of truth for all agents and gates |
 | Cognition (optional) | [REL Codex Variant](https://github.com/MrWizard94-Compile/REL) | Session logging, neural learn, context load via REST bridge |
 | Config | `janus.config.json` | Unified workspace configuration |
 
@@ -48,7 +48,7 @@ The `janus` command namespace is the unified entry point (built on the Aether CL
 | `janus brief -t <id>` | Token-efficient executor brief |
 | `janus repair -t <id>` | Validation repair context |
 | `janus loop run -t <id>` | Autonomous plan→execute→validate→seed |
-| `janus doctrine seed` | Bootstrap SOUL.md into memory |
+| `janus doctrine seed` | Bootstrap CLAUDE.md into memory |
 | `janus doctrine status` | Check doctrine freshness |
 | `janus assets queue` | Asset pipeline queue |
 | `janus rel status` | REL cognition service health and state summary |
@@ -89,7 +89,7 @@ When cognition is configured:
 
 ## Agent Bootstrap
 
-All agents must read **[SOUL.md](SOUL.md)** and **[AGENTS.md](AGENTS.md)** before work. Context ref `doc:soul` is auto-injected on task create; orchestrator tasks may also request live REL state via `doc:rel-state`.
+All agents must read **[CLAUDE.md](CLAUDE.md)** and **[AGENTS.md](AGENTS.md)** before work. Context ref `doc:claude` is auto-injected on task create; orchestrator tasks may also request live REL state via `doc:rel-state`.
 
 ## License
 

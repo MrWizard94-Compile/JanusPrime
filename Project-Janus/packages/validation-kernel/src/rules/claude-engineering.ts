@@ -7,16 +7,16 @@ const HARDCODED_SECRET_PATTERN =
 const DYNAMIC_CODE_EXEC_PATTERN = /\beval\s*\(|new\s+Function\s*\(/;
 const CHILD_PROCESS_PATTERN = /child_process/;
 
-export function runSoulEngineeringRules(proposal: PatchProposal): ValidationError[] {
+export function runClaudeEngineeringRules(proposal: PatchProposal): ValidationError[] {
   const errors: ValidationError[] = [];
 
   for (const file of proposal.files) {
     if (PLACEHOLDER_PATTERN.test(file.content)) {
       errors.push({
         layer: "rules",
-        rule: "SOUL001",
+        rule: "CLAUDE001",
         file: file.path,
-        message: "Placeholder or deferred implementation forbidden (SOUL §4, §8)",
+        message: "Placeholder or deferred implementation forbidden (CLAUDE §4, §8)",
         suggestion: "Deliver complete, wired-up implementation before submit",
       });
     }
@@ -24,9 +24,9 @@ export function runSoulEngineeringRules(proposal: PatchProposal): ValidationErro
     if (SUPPRESSION_PATTERN.test(file.content)) {
       errors.push({
         layer: "rules",
-        rule: "SOUL002",
+        rule: "CLAUDE002",
         file: file.path,
-        message: "Warning/error suppression forbidden (SOUL §1 zero-tolerance)",
+        message: "Warning/error suppression forbidden (CLAUDE §1 zero-tolerance)",
         suggestion: "Fix root cause instead of suppressing diagnostics",
       });
     }
@@ -34,9 +34,9 @@ export function runSoulEngineeringRules(proposal: PatchProposal): ValidationErro
     if (HARDCODED_SECRET_PATTERN.test(file.content)) {
       errors.push({
         layer: "rules",
-        rule: "SOUL003",
+        rule: "CLAUDE003",
         file: file.path,
-        message: "Hardcoded secret or credential forbidden (SOUL §10 security)",
+        message: "Hardcoded secret or credential forbidden (CLAUDE §10 security)",
         suggestion: "Load secrets from environment or a secrets manager, never literals in patch content",
       });
     }
@@ -44,9 +44,9 @@ export function runSoulEngineeringRules(proposal: PatchProposal): ValidationErro
     if (DYNAMIC_CODE_EXEC_PATTERN.test(file.content) || CHILD_PROCESS_PATTERN.test(file.content)) {
       errors.push({
         layer: "rules",
-        rule: "SOUL004",
+        rule: "CLAUDE004",
         file: file.path,
-        message: "Dynamic code execution or child_process forbidden (SOUL §10 security)",
+        message: "Dynamic code execution or child_process forbidden (CLAUDE §10 security)",
         suggestion: "Remove eval/new Function/child_process; use safe static APIs instead",
       });
     }

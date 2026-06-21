@@ -1,0 +1,51 @@
+﻿{
+  "parent": {
+    "assignee": "claude",
+    "validation_profile": "typescript-v1",
+    "context_refs": ["doc:claude", "arch:janus-unified", "doc:handoff-protocol"],
+    "spec": {
+      "objective": "Compliance smoke — validate gate + executor artifacts; instance overrides archived under packs/",
+      "constraints": [
+        "Prior uncommitted rogue patches were destroyed by pre-fix validation revert — re-implement via phase6 plans",
+        "Instance config overrides (adlods, nodecore, dynamictrees) are reference-only under packs/base-wars-instance-overrides/",
+        "Use forge-mod-v1 profile for non-mixin Forge workloads"
+      ],
+      "files_in_scope": [],
+      "acceptance_criteria": [
+        "Node Core identity smoke child accepted under forge-mod-v1",
+        "Executor gate artifacts present (EXECUTOR.md, .cursor/rules/janus-executor.mdc)",
+        "Validation kernel selective revert deployed (no whole-repo git clean on failure)"
+      ]
+    }
+  },
+  "children": [
+    {
+      "assignee": "grok",
+      "patch_mode": "identity",
+      "task": {
+        "workload": "nodecore",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude", "doc:handoff-protocol"],
+        "spec": {
+          "objective": "Node Core compliance smoke — identity validation of committed main mod entry",
+          "constraints": [
+            "No stubs or TODOs",
+            "Forge 1.20.1"
+          ],
+          "files_in_scope": [
+            "src/main/java/com/mrwizard94/nodecore/NodeCore.java"
+          ],
+          "acceptance_criteria": [
+            "Passes forge-mod-v1 validation",
+            "gradlew build exits 0",
+            "Task accepted with receipt"
+          ]
+        }
+      }
+    }
+  ],
+  "provision": {
+    "auto_worktree": true,
+    "auto_prepare": true
+  }
+}

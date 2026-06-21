@@ -1,0 +1,49 @@
+
+[deadWorld]
+	#Master switch for Base Wars dead-world rules (worldgen strip, lush-only growth).
+	enabled = true
+	#Remove trees, grass, flowers, and cave vegetation from overworld biome generation.
+	stripVegetation = true
+	#Remove scattered underground ore features from overworld biome generation.
+	stripScatterOres = true
+	#Allow crop and plant growth only inside registered lush_hydro nodes.
+	growthLushOnly = true
+
+[surface]
+	#Block planting seeds and saplings on blocks exposed to open sky.
+	sterilityEnabled = true
+
+[lush]
+	#Accelerate crop and plant growth inside lush hydro-nodes.
+	growthEnabled = true
+	#How often (in ticks) lush nodes attempt accelerated growth.
+	#Range: 5 ~ 600
+	growthIntervalTicks = 40
+
+[extraction]
+	#Broadcast alerts when configured drill blocks are placed inside ore nodes.
+	alertsEnabled = true
+	#Block ids that trigger extraction alerts (e.g. create:mechanical_drill).
+	alertBlocks = ["create:mechanical_drill"]
+
+[nodes]
+	#Default radius (blocks) for newly registered nodes.
+	#Range: 8 ~ 256
+	defaultRadius = 48
+	#Minimum spacing hint for worldgen / manual placement (blocks).
+	#Range: 500 ~ 20000
+	minSpacing = 2500
+	#Maximum spacing hint for worldgen / manual placement (blocks).
+	#Range: 1000 ~ 30000
+	maxSpacing = 4000
+	#Node type registered when a node_marker block is placed.
+	markerDefaultType = "ore_iron"
+	#On first server start, seed logical node zones when the dimension registry is empty and Large Ore Deposits is not installed. Does not place ore or lush cave structures.
+	autoSeedEnabled = false
+
+[incontrol]
+	#Allow /nodecore export incontrol to write In Control helper rule files.
+	spawnExportEnabled = true
+	#Mob id per node type for In Control spawner export (type=mob_id).
+	spawnMobsByType = ["ore_iron=minecraft:zombie", "ore_copper=minecraft:husk", "ore_brass=minecraft:drowned", "ore_quartz=minecraft:zombified_piglin", "lush_hydro=minecraft:cave_spider", "quartz_rift=minecraft:blaze"]
+

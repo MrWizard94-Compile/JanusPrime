@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadJanusConfig } from "./config.js";
 import { RelClient } from "./rel-client.js";
@@ -100,9 +101,7 @@ describe("RelClient", () => {
   });
 
   it("loads cognition config from janus.config.json", async () => {
-    const { config } = await loadJanusConfig(
-      "C:\\Users\\Bulkl\\OneDrive\\Desktop\\Janus\\Project-Janus",
-    );
+    const { config } = await loadJanusConfig(join(import.meta.dirname, "../../.."));
 
     expect(config.components.cognition?.rest_url).toBe("http://localhost:8080");
     expect(config.components.cognition?.log_loop_outcomes).toBe(true);
