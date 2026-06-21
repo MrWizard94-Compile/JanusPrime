@@ -1,6 +1,7 @@
 import type { PatchProposal, Task, ValidationProfile } from "@aether/shared";
 import { getValidationProfile } from "@aether/shared";
 import { loadAetherConfig } from "./config.js";
+import { diagnoseResult } from "./gate-infra.js";
 import { runAstLayer } from "./layers/ast.js";
 import { runBuildLayer } from "./layers/build.js";
 import { runLspLayer } from "./layers/lsp.js";
@@ -110,12 +111,21 @@ export class ValidationKernel {
     const errors = layers.flatMap((layer) => layer.errors);
     const passed = layers.every((layer) => !layer.ran || layer.passed);
 
-    return {
+    const result: ValidationResult = {
       passed,
       profile_id: profile.id,
       workspace_root: workspaceRoot,
       layers,
       errors,
     };
+
+    // Classify harness-infra failures so consumers don't blame the executor
+    // patch for a broken gate. The validator inspecting its own failures.
+    const harnessInfra = diagnoseResult(result);
+    if (harnessInfra.length > 0) {
+      result.harness_infra = harnessInfra;
+    }
+
+    return result;
   }
 }

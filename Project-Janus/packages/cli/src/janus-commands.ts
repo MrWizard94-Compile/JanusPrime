@@ -4,6 +4,7 @@ import {
   JanusAutonomousLoop,
   JanusUnifiedService,
   loadJanusConfig,
+  runGateDoctor,
   MemoryClient,
   AssetRunner,
   RelBridge,
@@ -56,6 +57,18 @@ export function registerJanusCommands(program: Command): void {
       const service = await loadJanusService(process.cwd());
       const result = await service.seedAcceptedTask(options.task);
       console.log(JSON.stringify(result, null, 2));
+    });
+
+  janus
+    .command("doctor")
+    .description("Harness pre-flight — verify the validation gate's own infrastructure (LSP, build scripts, pnpm workspace, profile coverage)")
+    .action(async () => {
+      const { root } = await loadJanusConfig(process.cwd());
+      const report = await runGateDoctor(root);
+      console.log(JSON.stringify(report, null, 2));
+      if (!report.ok) {
+        process.exitCode = 1;
+      }
     });
 
   const doctrine = janus.command("doctrine").description("CLAUDE.md doctrine operations");

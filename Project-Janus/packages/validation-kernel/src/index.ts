@@ -4,7 +4,15 @@ export { HandoffService } from "./handoff.js";
 export type { SubmitPatchOptions, SubmitPatchResult } from "./handoff.js";
 export { applyPatch, revertWorkspace } from "./patch.js";
 export { readReceipt, writeReceipt, receiptMatchesProposal } from "./receipt.js";
-export type { ValidationResult, LayerResult } from "./types.js";
+export type { ValidationResult, LayerResult, GateInfraDiagnosis } from "./types.js";
+export {
+  GATE_INFRA_SIGNATURES,
+  classifyText,
+  classifyError,
+  diagnoseResult,
+  isHarnessInfraFailure,
+} from "./gate-infra.js";
+export type { GateInfraSignature } from "./gate-infra.js";
 export { parseAssetModId } from "./rules/asset-task.js";
 export { parseAssetAction } from "./rules/asset-audit.js";
 export { runClaudeEngineeringRules } from "./rules/claude-engineering.js";
