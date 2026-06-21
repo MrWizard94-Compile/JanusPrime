@@ -10,9 +10,13 @@ export type PatchFile = z.infer<typeof PatchFileSchema>;
 
 export const PatchProposalSchema = z.object({
   task_id: z.string().min(1),
-  files: z.array(PatchFileSchema).min(1),
+  files: z.array(PatchFileSchema).default([]),
+  deleted_paths: z.array(z.string().min(1)).optional(),
   allow_overwrite: z.boolean().optional(),
-});
+}).refine(
+  (proposal) => proposal.files.length > 0 || (proposal.deleted_paths?.length ?? 0) > 0,
+  { message: "Patch must include at least one file change or deletion" },
+);
 
 export type PatchProposal = z.infer<typeof PatchProposalSchema>;
 
@@ -31,6 +35,7 @@ export function hashPatch(proposal: PatchProposal): string {
   const canonical = JSON.stringify({
     task_id: proposal.task_id,
     allow_overwrite: proposal.allow_overwrite ?? false,
+    deleted_paths: [...(proposal.deleted_paths ?? [])].sort(),
     files: [...proposal.files]
       .sort((a, b) => a.path.localeCompare(b.path))
       .map((file) => ({ path: file.path, content: file.content })),
