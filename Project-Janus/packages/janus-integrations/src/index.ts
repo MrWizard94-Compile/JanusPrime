@@ -39,6 +39,18 @@ export {
   type AutonomousLoopOptions,
   type LoopRoundResult,
 } from "./autonomous-loop.js";
+export {
+  evaluateWpaiBudgetGate,
+  estimateRoundCostUsd,
+  type WpaiBudgetGateResult,
+} from "./wpai-budget-gate.js";
+export {
+  transformJanusJobToDelegationPlan,
+  projectJanusOntoBlackboard,
+  writeDelegationPlanFile,
+  type JanusJob,
+  type DelegationPlan,
+} from "./studio-bridge.js";
 export { AssetTaskExecutor, type AssetTaskResult } from "./asset-task-executor.js";
 export {
   runGateDoctor,
@@ -64,3 +76,4 @@ export {
   collectLoopAchievements,
   type CognitionStatus,
 } from "./rel-bridge.js";
+export { CommsService, type CommsPostResult, type CommsReadResult } from "./comms-service.js";

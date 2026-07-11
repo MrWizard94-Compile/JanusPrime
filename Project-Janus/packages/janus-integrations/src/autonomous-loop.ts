@@ -9,6 +9,7 @@ import {
 } from "./python-sandbox-executor.js";
 import { RelBridge } from "./rel-bridge.js";
 import { JanusUnifiedService } from "./unified-service.js";
+import { evaluateWpaiBudgetGate } from "./wpai-budget-gate.js";
 
 export interface LoopRoundResult {
   round: number;
@@ -31,6 +32,22 @@ export interface AutonomousLoopResult {
 export interface AutonomousLoopOptions {
   max_rounds?: number;
   seed_on_accept?: boolean;
+  /**
+   * When true, after each round evaluate WPAI BLACKBOARD kill/spend caps
+   * and abort remaining rounds if the next round would exceed budget.
+   * Does not charge real money — estimate-only (cost model v0).
+   */
+  wpai_budget_gate?: boolean;
+  /**
+   * Optional callback after each round. Return false to abort remaining rounds.
+   * Invoked after seed/rollup checks; used by external hooks/tests.
+   */
+  on_round_end?: (ctx: {
+    round: number;
+    parent_id: string;
+    complete: boolean;
+    round_results: LoopRoundResult[];
+  }) => boolean | Promise<boolean>;
 }
 
 export class JanusAutonomousLoop {
@@ -112,6 +129,42 @@ export class JanusAutonomousLoop {
           round_results: roundResults,
           seeded_tasks: seededTasks,
         });
+      }
+
+      // Mid-loop abort: WPAI budget/kill gate (PR-09)
+      if (options?.wpai_budget_gate) {
+        const gate = await evaluateWpaiBudgetGate();
+        if (!gate.ok) {
+          roundResults.push({
+            round,
+            task_id: parentId,
+            kind: "identity",
+            status: "failed",
+            passed: false,
+            detail: `wpai_budget_gate_abort:${gate.reason}`,
+          });
+          break;
+        }
+      }
+
+      if (options?.on_round_end) {
+        const cont = await options.on_round_end({
+          round,
+          parent_id: parentId,
+          complete: false,
+          round_results: roundResults,
+        });
+        if (!cont) {
+          roundResults.push({
+            round,
+            task_id: parentId,
+            kind: "identity",
+            status: "failed",
+            passed: false,
+            detail: "on_round_end_abort",
+          });
+          break;
+        }
       }
     }
 

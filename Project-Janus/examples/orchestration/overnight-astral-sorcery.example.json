@@ -1,0 +1,49 @@
+{
+  "parent": {
+    "assignee": "claude",
+    "workload": null,
+    "validation_profile": "forge-mod-v1",
+    "context_refs": ["doc:claude"],
+    "spec": {
+      "objective": "Coordinate overnight quality pass on Astral Sorcery port (Forge 1.20.1)",
+      "constraints": [
+        "No SuppressWarnings",
+        "Zero compiler/LSP warnings",
+        "Minecraft EULA: never sell mods or packs",
+        "Do not change public API without acceptance criteria"
+      ],
+      "files_in_scope": [],
+      "acceptance_criteria": ["All children accepted"]
+    }
+  },
+  "children": [
+    {
+      "assignee": "grok",
+      "patch_mode": "manual",
+      "task": {
+        "workload": "astral-sorcery-port",
+        "validation_profile": "forge-mod-v1",
+        "context_refs": ["doc:claude"],
+        "spec": {
+          "objective": "Clear zero-warning build for scoped files only; no scope creep",
+          "constraints": [
+            "forge-mod-v1 profile",
+            "no TODOs or stubs",
+            "never suppress warnings"
+          ],
+          "files_in_scope": [
+            "src/main/java/hellfirepvp/astralsorcery/AstralSorcery.java"
+          ],
+          "acceptance_criteria": [
+            "gradlew build exits 0",
+            "validation receipt written"
+          ]
+        }
+      }
+    }
+  ],
+  "provision": {
+    "auto_worktree": true,
+    "auto_prepare": false
+  }
+}

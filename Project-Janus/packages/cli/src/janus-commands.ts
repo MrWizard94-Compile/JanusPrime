@@ -8,6 +8,10 @@ import {
   MemoryClient,
   AssetRunner,
   RelBridge,
+  transformJanusJobToDelegationPlan,
+  projectJanusOntoBlackboard,
+  writeDelegationPlanFile,
+  type JanusJob,
 } from "@janus/integrations";
 
 async function loadJanusService(cwd: string): Promise<JanusUnifiedService> {
@@ -122,19 +126,31 @@ export function registerJanusCommands(program: Command): void {
     .requiredOption("-t, --task <parentId>", "Parent task identifier")
     .option("--max-rounds <n>", "Maximum retry rounds", "5")
     .option("--no-seed", "Skip seeding accepted tasks to memory")
-    .action(async (options: { task: string; maxRounds: string; noSeed?: boolean }) => {
-      const { root, config } = await loadJanusConfig(process.cwd());
-      const autonomous = new JanusAutonomousLoop(root, config);
-      const result = await autonomous.run(options.task, {
-        max_rounds: Number.parseInt(options.maxRounds, 10),
-        seed_on_accept: !options.noSeed,
-      });
-      console.log(JSON.stringify(result, null, 2));
+    .option(
+      "--wpai-budget-gate",
+      "Abort remaining rounds if WPAI BLACKBOARD kill/spend caps would be exceeded",
+    )
+    .action(
+      async (options: {
+        task: string;
+        maxRounds: string;
+        noSeed?: boolean;
+        wpaiBudgetGate?: boolean;
+      }) => {
+        const { root, config } = await loadJanusConfig(process.cwd());
+        const autonomous = new JanusAutonomousLoop(root, config);
+        const result = await autonomous.run(options.task, {
+          max_rounds: Number.parseInt(options.maxRounds, 10),
+          seed_on_accept: !options.noSeed,
+          wpai_budget_gate: Boolean(options.wpaiBudgetGate),
+        });
+        console.log(JSON.stringify(result, null, 2));
 
-      if (!result.complete) {
-        process.exitCode = 1;
-      }
-    });
+        if (!result.complete) {
+          process.exitCode = 1;
+        }
+      },
+    );
 
   const memory = janus.command("memory").description("Smart-Library memory service");
 
@@ -319,5 +335,28 @@ export function registerJanusCommands(program: Command): void {
       if (result.stderr) {
         console.error(result.stderr);
       }
+    });
+
+  // WPAI studio-bridge surface (PR-06/07) — no Electron; projection + job transform only
+  const studio = janus.command("studio").description("WPAI studio-bridge (BLACKBOARD / janus_job)");
+
+  studio
+    .command("sync")
+    .description("Project .aether task counts onto WPAI BLACKBOARD")
+    .action(async () => {
+      const result = await projectJanusOntoBlackboard();
+      console.log(JSON.stringify(result, null, 2));
+    });
+
+  studio
+    .command("plan")
+    .description("Transform a janus_job JSON file into a DelegationPlan (never raw job → orchestrate)")
+    .requiredOption("-f, --file <path>", "Path to janus_job JSON")
+    .action(async (options: { file: string }) => {
+      const raw = await readFile(options.file, "utf8");
+      const job = JSON.parse(raw) as JanusJob;
+      const plan = transformJanusJobToDelegationPlan(job);
+      const path = await writeDelegationPlanFile(plan);
+      console.log(JSON.stringify({ plan_path: path, plan }, null, 2));
     });
 }
