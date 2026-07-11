@@ -17,7 +17,8 @@ describe("janus config", () => {
     const { config } = await loadJanusConfig(projectJanusRoot);
     expect(config.name).toBe("janusprime");
     expect(config.components.memory.url).toBe("http://localhost:8000");
-    expect(config.components.assets.root).toBe("../../../../../Projects/AssetConverter");
+    // Production path is WPAI AssetConverter (relative from Janus root)
+    expect(config.components.assets.root).toBe("../AssetConverter");
     expect(config.doctrine.claude_path).toBe("CLAUDE.md");
     expect(config.doctrine.inject_into_brief).toBe(true);
     expect(config.components.cognition?.root).toBe("env:REL_COGNITION_ROOT");

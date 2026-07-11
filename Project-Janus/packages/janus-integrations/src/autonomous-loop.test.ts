@@ -7,6 +7,7 @@ import { loadJanusConfig } from "./config.js";
 import { PythonSandboxExecutor } from "./python-sandbox-executor.js";
 import { JanusUnifiedService } from "./unified-service.js";
 import { RelBridge } from "./rel-bridge.js";
+import * as wpaiBudgetGate from "./wpai-budget-gate.js";
 
 const projectJanusRoot = join(import.meta.dirname, "../../..");
 
@@ -97,5 +98,83 @@ describe("JanusAutonomousLoop python-sandbox routing", () => {
       passed: true,
       detail: "Success:scripts/demo.py",
     });
+  });
+});
+
+describe("JanusAutonomousLoop mid-loop WPAI budget charge", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("charges after incomplete round then aborts when next-round gate fails", async () => {
+    const { root, config } = await loadJanusConfig(projectJanusRoot);
+
+    vi.spyOn(PythonSandboxExecutor.prototype, "execute").mockResolvedValue({
+      task_id: pythonChild.id,
+      passed: false,
+      status: "failed",
+      heal_status: "Failed",
+      source_files: ["scripts/demo.py"],
+      errors: ["sandbox fail"],
+    });
+
+    vi.spyOn(OrchestratorService.prototype, "provisionChildren").mockResolvedValue();
+    // Child remains active so rollup stays incomplete and budget path runs
+    vi.spyOn(OrchestratorService.prototype, "listChildren").mockResolvedValue([pythonChild]);
+    vi.spyOn(OrchestratorService.prototype, "rollupStatus").mockResolvedValue({
+      parent_id: "parent-1",
+      total: 1,
+      by_status: {
+        pending: 1,
+        in_progress: 0,
+        validating: 0,
+        failed: 0,
+        accepted: 0,
+        abandoned: 0,
+      },
+      complete: false,
+      children: [pythonChild],
+    });
+    vi.spyOn(JanusUnifiedService.prototype, "getDoctrineStatus").mockResolvedValue({
+      fresh: true,
+      content_hash: "abc",
+      stored_count: 1,
+    });
+    vi.spyOn(RelBridge.prototype, "logAutonomousLoopOutcome").mockResolvedValue();
+    vi.spyOn(JanusUnifiedService.prototype, "syncRelConceptsToMemory").mockResolvedValue();
+
+    const chargeSpy = vi.spyOn(wpaiBudgetGate, "chargeWpaiBudgetRound").mockResolvedValue({
+      ok: true,
+      reason: "charged 1.5",
+      day_spent: 1.5,
+      day_cap: 5,
+      month_spent: 1.5,
+      month_cap: 40,
+      invocations: 1,
+      inv_cap: 30,
+    });
+    const gateSpy = vi.spyOn(wpaiBudgetGate, "evaluateWpaiBudgetGate").mockResolvedValue({
+      ok: false,
+      reason: "day spend est 3 would exceed cap 2",
+      day_spent: 3,
+      day_cap: 2,
+    });
+
+    const loop = new JanusAutonomousLoop(root, config);
+    const result = await loop.run("parent-1", {
+      max_rounds: 3,
+      seed_on_accept: false,
+      wpai_budget_gate: true,
+    });
+
+    expect(chargeSpy).toHaveBeenCalledTimes(1);
+    expect(gateSpy).toHaveBeenCalledTimes(1);
+    expect(result.rounds_executed).toBe(1);
+    expect(result.complete).toBe(false);
+    expect(
+      result.round_results.some((r) =>
+        String(r.detail ?? "").startsWith("wpai_budget_gate_abort:"),
+      ),
+    ).toBe(true);
   });
 });
