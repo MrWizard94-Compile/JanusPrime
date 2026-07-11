@@ -42,6 +42,7 @@ export {
 export {
   evaluateWpaiBudgetGate,
   estimateRoundCostUsd,
+  chargeWpaiBudgetRound,
   type WpaiBudgetGateResult,
 } from "./wpai-budget-gate.js";
 export {

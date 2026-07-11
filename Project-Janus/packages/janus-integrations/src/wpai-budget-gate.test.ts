@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import { writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { estimateRoundCostUsd, evaluateWpaiBudgetGate } from "./wpai-budget-gate.js";
+import {
+  chargeWpaiBudgetRound,
+  estimateRoundCostUsd,
+  evaluateWpaiBudgetGate,
+} from "./wpai-budget-gate.js";
 import { transformJanusJobToDelegationPlan } from "./studio-bridge.js";
 
 describe("wpai budget gate", () => {
@@ -58,6 +62,32 @@ describe("wpai budget gate", () => {
     );
     const r = await evaluateWpaiBudgetGate(bb);
     expect(r.ok).toBe(true);
+  });
+
+  it("charges round cost onto blackboard", async () => {
+    const dir = join(tmpdir(), `wpai-charge-${Date.now()}`);
+    await mkdir(dir, { recursive: true });
+    const bb = join(dir, "BLACKBOARD.json");
+    await writeFile(
+      bb,
+      JSON.stringify({
+        generation: 1,
+        kill_switch: { global: false, loops: false },
+        budgets: {
+          api_usd_cap_day: 5,
+          api_usd_cap_month: 40,
+          api_usd_spent_est_day: 0,
+          api_usd_spent_est_month: 0,
+          max_executor_invocations_day: 30,
+          executor_invocations_day: 0,
+        },
+      }),
+      "utf8",
+    );
+    const r = await chargeWpaiBudgetRound(bb, 1);
+    expect(r.ok).toBe(true);
+    expect(r.day_spent).toBe(1.5);
+    expect(r.invocations).toBe(1);
   });
 });
 
