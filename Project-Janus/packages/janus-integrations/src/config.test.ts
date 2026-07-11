@@ -23,6 +23,27 @@ describe("janus config", () => {
     expect(config.doctrine.inject_into_brief).toBe(true);
     expect(config.components.cognition?.root).toBe("env:REL_COGNITION_ROOT");
   });
+
+  it("enforces token_policy brief caps for latency-bounded briefs", async () => {
+    const { config } = await loadJanusConfig(projectJanusRoot);
+    const { token_policy: policy } = config;
+    const memoryLimit = config.components.memory.context_limit;
+
+    expect(Number.isFinite(policy.brief_max_chars)).toBe(true);
+    expect(policy.brief_max_chars).toBeGreaterThan(0);
+    expect(policy.brief_max_chars).toBeLessThanOrEqual(20_000);
+
+    expect(Number.isFinite(policy.memory_slice_max_chars)).toBe(true);
+    expect(policy.memory_slice_max_chars).toBeGreaterThan(0);
+    expect(policy.memory_slice_max_chars).toBeLessThanOrEqual(4_000);
+
+    expect(Number.isFinite(memoryLimit)).toBe(true);
+    expect(memoryLimit).toBeGreaterThan(0);
+    expect(memoryLimit).toBeLessThanOrEqual(8);
+
+    const maxMemoryChars = policy.memory_slice_max_chars * memoryLimit;
+    expect(maxMemoryChars).toBeLessThanOrEqual(policy.brief_max_chars);
+  });
 });
 
 describe("loadEnvFile", () => {
