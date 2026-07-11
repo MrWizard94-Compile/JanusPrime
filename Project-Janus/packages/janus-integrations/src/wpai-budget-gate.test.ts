@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
@@ -7,7 +7,26 @@ import {
   estimateRoundCostUsd,
   evaluateWpaiBudgetGate,
 } from "./wpai-budget-gate.js";
-import { transformJanusJobToDelegationPlan } from "./studio-bridge.js";
+
+function uniqueDir(prefix: string): string {
+  return join(tmpdir(), `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+}
+
+async function writeBlackboard(
+  bb: string,
+  body: Record<string, unknown>,
+): Promise<void> {
+  await writeFile(bb, JSON.stringify(body), "utf8");
+}
+
+const openBudgets = {
+  api_usd_cap_day: 5,
+  api_usd_cap_month: 40,
+  api_usd_spent_est_day: 0,
+  api_usd_spent_est_month: 0,
+  max_executor_invocations_day: 30,
+  executor_invocations_day: 0,
+};
 
 describe("wpai budget gate", () => {
   it("estimates cost model v0 additively", () => {
@@ -16,95 +35,109 @@ describe("wpai budget gate", () => {
   });
 
   it("fails when kill switch loops is true", async () => {
-    const dir = join(tmpdir(), `wpai-gate-${Date.now()}`);
+    const dir = uniqueDir("wpai-gate");
     await mkdir(dir, { recursive: true });
     const bb = join(dir, "BLACKBOARD.json");
-    await writeFile(
-      bb,
-      JSON.stringify({
-        generation: 1,
-        kill_switch: { global: false, loops: true },
-        budgets: {
-          api_usd_cap_day: 5,
-          api_usd_cap_month: 40,
-          api_usd_spent_est_day: 0,
-          api_usd_spent_est_month: 0,
-          max_executor_invocations_day: 30,
-          executor_invocations_day: 0,
-        },
-      }),
-      "utf8",
-    );
+    await writeBlackboard(bb, {
+      generation: 1,
+      kill_switch: { global: false, loops: true },
+      budgets: { ...openBudgets },
+    });
     const r = await evaluateWpaiBudgetGate(bb);
     expect(r.ok).toBe(false);
     expect(r.kill).toBe(true);
   });
 
   it("passes under default caps", async () => {
-    const dir = join(tmpdir(), `wpai-gate-ok-${Date.now()}`);
+    const dir = uniqueDir("wpai-gate-ok");
     await mkdir(dir, { recursive: true });
     const bb = join(dir, "BLACKBOARD.json");
-    await writeFile(
-      bb,
-      JSON.stringify({
-        generation: 1,
-        kill_switch: { global: false, loops: false },
-        budgets: {
-          api_usd_cap_day: 5,
-          api_usd_cap_month: 40,
-          api_usd_spent_est_day: 0,
-          api_usd_spent_est_month: 0,
-          max_executor_invocations_day: 30,
-          executor_invocations_day: 0,
-        },
-      }),
-      "utf8",
-    );
+    await writeBlackboard(bb, {
+      generation: 1,
+      kill_switch: { global: false, loops: false },
+      budgets: { ...openBudgets },
+    });
     const r = await evaluateWpaiBudgetGate(bb);
     expect(r.ok).toBe(true);
   });
 
   it("charges round cost onto blackboard", async () => {
-    const dir = join(tmpdir(), `wpai-charge-${Date.now()}`);
+    const dir = uniqueDir("wpai-charge");
     await mkdir(dir, { recursive: true });
     const bb = join(dir, "BLACKBOARD.json");
-    await writeFile(
-      bb,
-      JSON.stringify({
-        generation: 1,
-        kill_switch: { global: false, loops: false },
-        budgets: {
-          api_usd_cap_day: 5,
-          api_usd_cap_month: 40,
-          api_usd_spent_est_day: 0,
-          api_usd_spent_est_month: 0,
-          max_executor_invocations_day: 30,
-          executor_invocations_day: 0,
-        },
-      }),
-      "utf8",
-    );
+    await writeBlackboard(bb, {
+      generation: 1,
+      kill_switch: { global: false, loops: false },
+      budgets: { ...openBudgets },
+    });
     const r = await chargeWpaiBudgetRound(bb, 1);
     expect(r.ok).toBe(true);
     expect(r.day_spent).toBe(1.5);
     expect(r.invocations).toBe(1);
   });
-});
 
-describe("studio-bridge transform", () => {
-  it("maps janus_job to claude parent + grok child manual default", () => {
-    const plan = transformJanusJobToDelegationPlan({
-      kind: "janus_job",
-      workload: "nodecore",
-      validation_profile: "forge-mod-v1",
-      objective: "fix warnings",
-      files_in_scope: ["a.java"],
-      patch_mode: "manual",
+  it("charge then gate fails when day cap exceeded", async () => {
+    // Cap 2.0; one charge is 1.5 (ok), next evaluateRound (additional 1.5) would be 3.0 > 2.0
+    const dir = uniqueDir("wpai-day-cap");
+    await mkdir(dir, { recursive: true });
+    const bb = join(dir, "BLACKBOARD.json");
+    await writeBlackboard(bb, {
+      generation: 1,
+      kill_switch: { global: false, loops: false },
+      budgets: {
+        ...openBudgets,
+        api_usd_cap_day: 2,
+      },
     });
-    expect(plan.parent.assignee).toBe("claude");
-    expect(plan.children[0]?.assignee).toBe("grok");
-    expect(plan.children[0]?.patch_mode).toBe("manual");
-    expect(plan.parent.spec.files_in_scope).toEqual([]);
-    expect(plan.children[0]?.task.spec.files_in_scope).toEqual(["a.java"]);
+
+    const charged = await chargeWpaiBudgetRound(bb, 1);
+    expect(charged.ok).toBe(true);
+    expect(charged.day_spent).toBe(1.5);
+
+    const gate = await evaluateWpaiBudgetGate(bb);
+    expect(gate.ok).toBe(false);
+    expect(gate.reason).toMatch(/day spend est/);
+    expect(gate.day_cap).toBe(2);
+    expect(gate.day_spent).toBeGreaterThan(2);
+
+    // Second charge also blocked by pre-check
+    const blocked = await chargeWpaiBudgetRound(bb, 1);
+    expect(blocked.ok).toBe(false);
+    expect(blocked.reason).toMatch(/day spend est/);
+
+    const persisted = JSON.parse(await readFile(bb, "utf8")) as {
+      budgets: { api_usd_spent_est_day: number };
+    };
+    // Only the first successful charge landed
+    expect(persisted.budgets.api_usd_spent_est_day).toBe(1.5);
+  });
+
+  it("kill global blocks charge", async () => {
+    const dir = uniqueDir("wpai-kill-global");
+    await mkdir(dir, { recursive: true });
+    const bb = join(dir, "BLACKBOARD.json");
+    await writeBlackboard(bb, {
+      generation: 1,
+      kill_switch: { global: true, loops: false },
+      budgets: { ...openBudgets },
+    });
+
+    const evaluate = await evaluateWpaiBudgetGate(bb);
+    expect(evaluate.ok).toBe(false);
+    expect(evaluate.kill).toBe(true);
+    expect(evaluate.reason).toMatch(/kill switch/);
+
+    const charge = await chargeWpaiBudgetRound(bb, 1);
+    expect(charge.ok).toBe(false);
+    expect(charge.kill).toBe(true);
+    expect(charge.reason).toMatch(/kill switch/);
+
+    const persisted = JSON.parse(await readFile(bb, "utf8")) as {
+      budgets: { api_usd_spent_est_day: number; executor_invocations_day: number };
+      generation: number;
+    };
+    expect(persisted.budgets.api_usd_spent_est_day).toBe(0);
+    expect(persisted.budgets.executor_invocations_day).toBe(0);
+    expect(persisted.generation).toBe(1);
   });
 });
