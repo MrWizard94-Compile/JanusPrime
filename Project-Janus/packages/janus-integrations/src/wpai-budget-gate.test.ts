@@ -316,4 +316,134 @@ describe("wpai budget gate property/fuzz", () => {
       expect(r!.ok).toBe(false);
     }
   });
+
+  /**
+   * Accounting-style double-entry (borrow-from-accounting):
+   * when chargeWpaiBudgetRound is ok, persisted day/month spent must increase by
+   * exactly estimateRoundCostUsd(n); when blocked, ledger must not move.
+   * static-score = matched_ok_charges / ok_charges (must be 1.0).
+   */
+  it("double-entry: ok charge deltas day_spent by estimateRoundCostUsd(n) (static-score)", async () => {
+    const dir = uniqueDir("wpai-fuzz-double-entry");
+    await mkdir(dir, { recursive: true });
+
+    let okCharges = 0;
+    let ledgerMatches = 0;
+    let blockedNoMove = 0;
+    let blockedTotal = 0;
+    const trials = 80;
+
+    type BudgetSnap = {
+      api_usd_spent_est_day: number;
+      api_usd_spent_est_month: number;
+      executor_invocations_day: number;
+      generation: number;
+    };
+
+    async function readSnap(path: string): Promise<BudgetSnap> {
+      const raw = JSON.parse(await readFile(path, "utf8")) as {
+        generation?: number;
+        budgets?: Record<string, number>;
+      };
+      const b = raw.budgets ?? {};
+      return {
+        api_usd_spent_est_day: Number(b["api_usd_spent_est_day"] ?? 0),
+        api_usd_spent_est_month: Number(b["api_usd_spent_est_month"] ?? 0),
+        executor_invocations_day: Number(b["executor_invocations_day"] ?? 0),
+        generation: Number(raw.generation ?? 0),
+      };
+    }
+
+    for (let i = 0; i < trials; i++) {
+      const bb = join(dir, `BLACKBOARD-${i}.json`);
+      // Finite, non-pathological ledger seeds so the double-entry equality is well-defined
+      const dayBefore = randChoice([0, 0.5, 1, 1.5, 2, 3]);
+      const monthBefore = randChoice([0, 1, 5, 10, 20]);
+      const invBefore = randChoice([0, 1, 2, 5, 10, 15]);
+      // Mix roomy caps (expect ok) with tight caps (expect block) for both branches
+      const dayCap = randChoice([5, 10, 40, 100, dayBefore + 0.5, dayBefore]);
+      const monthCap = randChoice([40, 100, 500, monthBefore + 1, monthBefore]);
+      const invCap = randChoice([30, 50, 100, invBefore, invBefore + 1]);
+      const n = randChoice([0, 1, 2, 3, 5, 10, Math.floor(Math.random() * 20)]);
+      const kill_switch = randChoice([
+        { global: false, loops: false },
+        { global: false, loops: false },
+        { global: false, loops: false },
+        { global: true, loops: false },
+        { global: false, loops: true },
+      ]);
+
+      await writeBlackboard(bb, {
+        generation: i,
+        kill_switch,
+        budgets: {
+          api_usd_cap_day: dayCap,
+          api_usd_cap_month: monthCap,
+          api_usd_spent_est_day: dayBefore,
+          api_usd_spent_est_month: monthBefore,
+          max_executor_invocations_day: invCap,
+          executor_invocations_day: invBefore,
+        },
+      });
+
+      const before = await readSnap(bb);
+      const cost = estimateRoundCostUsd(n);
+      const r = await chargeWpaiBudgetRound(bb, n);
+      const after = await readSnap(bb);
+
+      expect(typeof r.ok).toBe("boolean");
+
+      if (r.ok) {
+        okCharges += 1;
+        const dayDelta = after.api_usd_spent_est_day - before.api_usd_spent_est_day;
+        const monthDelta =
+          after.api_usd_spent_est_month - before.api_usd_spent_est_month;
+        const invDelta =
+          after.executor_invocations_day - before.executor_invocations_day;
+        // Exact double-entry: debit day/month by cost, credit invocations by n
+        expect(dayDelta).toBe(cost);
+        expect(monthDelta).toBe(cost);
+        expect(invDelta).toBe(n);
+        expect(r.day_spent).toBe(after.api_usd_spent_est_day);
+        expect(r.month_spent).toBe(after.api_usd_spent_est_month);
+        expect(r.invocations).toBe(after.executor_invocations_day);
+        expect(after.generation).toBe(before.generation + 1);
+        if (
+          dayDelta === cost &&
+          monthDelta === cost &&
+          invDelta === n &&
+          r.day_spent === after.api_usd_spent_est_day
+        ) {
+          ledgerMatches += 1;
+        }
+      } else {
+        blockedTotal += 1;
+        // Failed pre-check must not mutate the ledger (no silent debit)
+        expect(after.api_usd_spent_est_day).toBe(before.api_usd_spent_est_day);
+        expect(after.api_usd_spent_est_month).toBe(
+          before.api_usd_spent_est_month,
+        );
+        expect(after.executor_invocations_day).toBe(
+          before.executor_invocations_day,
+        );
+        expect(after.generation).toBe(before.generation);
+        if (
+          after.api_usd_spent_est_day === before.api_usd_spent_est_day &&
+          after.api_usd_spent_est_month === before.api_usd_spent_est_month &&
+          after.executor_invocations_day === before.executor_invocations_day &&
+          after.generation === before.generation
+        ) {
+          blockedNoMove += 1;
+        }
+      }
+    }
+
+    // Probe metric: static-score over successful charges (and blocked integrity)
+    expect(okCharges).toBeGreaterThan(0);
+    expect(blockedTotal).toBeGreaterThan(0);
+    const staticScore = ledgerMatches / okCharges;
+    const blockIntegrity = blockedNoMove / blockedTotal;
+    expect(staticScore).toBe(1);
+    expect(blockIntegrity).toBe(1);
+  });
 });
