@@ -1,0 +1,30 @@
+{
+  "parent_id": null,
+  "assignee": "grok",
+  "workload": "janus-orchestrator",
+  "context_refs": ["doc:claude", "arch:janus-unified", "doc:handoff-protocol", "aether:patch_mode:manual"],
+  "validation_profile": "typescript-v1",
+  "spec": {
+    "objective": "Make executor failover REAL and EFFECTIVE. Live test exposed three gaps: Grok hit its token limit mid-task and the system never failed over to Qwen; the Qwen fallback abandons even trivial tasks; and orchestrator review feedback never reaches the executor. Fix all three so the primary→fallback handoff is automatic and the fallback can actually complete work.",
+    "constraints": [
+      "PART 1 (CRITICAL, demo-proven) — Qwen tool-call parsing. Ollama's /v1 chat for qwen2.5-coder:7b returns tool calls as JSON in message.content with the structured `tool_calls` field NULL (verified: content = '{\"name\":\"read_file\",\"arguments\":{...}}'). The loop in qwen-executor.ts only reads choice.tool_calls, so it sees no tool use and abandons after 1 round. Fix ollama-client.ts/qwen-executor.ts to also detect+parse content-embedded tool-call JSON (single object or array) when tool_calls is absent, and to re-prompt rather than break when a turn yields neither a tool call nor a staged patch (up to max_repair_rounds).",
+      "PART 2 — Liveness + mid-task reroute. Executors must run THROUGH the dispatch layer (not interactively). Detect primary (grok) failure mid-task — process exit / token-limit error / stall timeout — and automatically reroute the SAME task to the qwen fallback. The comms watcher's silence != healthy; add an explicit liveness signal.",
+      "PART 3 — Review-aware repair context. Orchestrator review feedback (comms BLOCKED items and/or task.result review notes) must be injected into the brief/repair context the executor pulls (OrchestratorService.buildExecutorBrief / buildRepairContext), so the fallback acts on review feedback, not just gate errors.",
+      "No stubs/TODOs/suppressions; no `as unknown as`; no relative cross-package src imports; gate-only mutations."
+    ],
+    "files_in_scope": [
+      "packages/janus-integrations/src/ollama-client.ts",
+      "packages/janus-integrations/src/qwen-executor.ts",
+      "packages/janus-integrations/src/qwen-executor.test.ts",
+      "packages/janus-integrations/src/executor-supervisor.ts",
+      "packages/orchestrator/src/service.ts",
+      "packages/cli/src/program.ts"
+    ],
+    "acceptance_criteria": [
+      "PART 1: `janus dispatch --executor qwen -t task-b5e5664d-e549-44a3-a0bf-e185d67c3aa0` (the clamp demo) COMPLETES through the gate (passed:true), proving qwen now parses tool calls and stages a valid patch.",
+      "PART 2: a simulated primary-executor failure reroutes the same task to qwen automatically (unit-testable supervisor; no interactive dependency).",
+      "PART 3: orchestrator review notes for a task appear in the executor brief/repair context pulled for it (covered by a test).",
+      "Full `pnpm -r test` GREEN (gate only typechecks — run tests yourself); `pnpm build`; `pnpm typecheck` clean; zero warnings."
+    ]
+  }
+}

@@ -77,6 +77,22 @@ export const GATE_INFRA_SIGNATURES: readonly GateInfraSignature[] = [
     fix: "Pass `--force-local` to tar so drive-letter colons are treated as local paths.",
   },
   {
+    id: "GATE-8",
+    phase: "lsp",
+    pattern:
+      /timed out waiting for jdt\.ls|jdt\.ls validation failed: timed out|jdt\.ls (?:process )?exited with code|\bEBUSY\b.*jdtls|jdtls.*index\.tmp/i,
+    summary:
+      "JDT.LS cold Gradle/Forge import exceeded the diagnostics timeout or churned a throwaway data dir.",
+    fix: "Set jdtls.workspace_data_dir (persistent per-workspace import cache) and raise validation.lsp_timeout_ms; cold modded-MC imports need 180s+. See references and the jdtls-gate-config memory.",
+  },
+  {
+    id: "GATE-9",
+    phase: "lsp",
+    pattern: /jdt\.ls is not configured|set jdtls\.home/i,
+    summary: "Java LSP layer ran without jdtls.home configured.",
+    fix: "Set jdtls.home (and workspace_data_dir) in .aether/config.json and run `janus janus doctor` to verify the launcher.",
+  },
+  {
     id: "GATE-GENERIC",
     phase: "build",
     pattern:

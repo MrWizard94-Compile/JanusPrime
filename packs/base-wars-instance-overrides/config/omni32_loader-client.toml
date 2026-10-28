@@ -1,5 +1,5 @@
 [assets]
-	root = "C:/Projects/AssetConverter/output/assets"
+	root = "C:/WPAI/AI-Research/AssetConverter/output/assets"
 	activeOnly = true
 	logDiscovery = true
 	extraNamespaces = []

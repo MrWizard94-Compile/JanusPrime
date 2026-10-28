@@ -47,7 +47,7 @@ export class ValidationKernel {
     const profile = getValidationProfile(options.task.validation_profile);
     const config = await loadAetherConfig(options.repoRoot);
 
-    await applyPatch(options.workspaceRoot, options.proposal);
+    const snapshot = await applyPatch(options.workspaceRoot, options.proposal);
 
     try {
       const result = await this.runLayers(
@@ -67,12 +67,12 @@ export class ValidationKernel {
       );
 
       if (!result.passed || !options.persistOnPass) {
-        await revertWorkspace(options.workspaceRoot, options.proposal);
+        await revertWorkspace(options.workspaceRoot, snapshot);
       }
 
       return result;
     } catch (error) {
-      await revertWorkspace(options.workspaceRoot, options.proposal);
+      await revertWorkspace(options.workspaceRoot, snapshot);
       throw error;
     }
   }

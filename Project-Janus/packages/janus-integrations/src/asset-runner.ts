@@ -28,39 +28,7 @@ export class AssetRunner {
 
   async run(args: string[]): Promise<AssetRunResult> {
     const entryPath = join(this.assetRoot, this.entry);
-    const command = this.python;
-    const fullArgs = [entryPath, ...args];
-
-    return new Promise((resolve, reject) => {
-      const child = spawn(command, fullArgs, {
-        cwd: this.assetRoot,
-        shell: process.platform === "win32",
-        env: process.env,
-      });
-
-      let stdout = "";
-      let stderr = "";
-
-      child.stdout.on("data", (chunk: Buffer) => {
-        stdout += chunk.toString();
-      });
-
-      child.stderr.on("data", (chunk: Buffer) => {
-        stderr += chunk.toString();
-      });
-
-      child.on("error", reject);
-
-      child.on("close", (code) => {
-        resolve({
-          command,
-          args: fullArgs,
-          exitCode: code ?? 1,
-          stdout,
-          stderr,
-        });
-      });
-    });
+    return this.spawnPython([entryPath, ...args]);
   }
 
   async queue(): Promise<AssetQueueStatus> {
@@ -100,13 +68,25 @@ export class AssetRunner {
 
   private async runSubprocess(script: string, args: string[]): Promise<AssetRunResult> {
     const scriptPath = join(this.assetRoot, script);
+    return this.spawnPython([scriptPath, ...args]);
+  }
+
+  /**
+   * Spawn the configured Python interpreter with an argument vector.
+   *
+   * `shell` is intentionally NOT set: passing an args array with `shell: true`
+   * concatenates the args into a shell command line unescaped (Node DEP0190),
+   * which is a command-injection vector for any task-derived arg (mod ids,
+   * paths). Spawning the interpreter directly passes each arg verbatim through
+   * the OS exec boundary with zero shell interpolation.
+   */
+  private async spawnPython(fullArgs: string[]): Promise<AssetRunResult> {
     const command = this.python;
-    const fullArgs = [scriptPath, ...args];
 
     return new Promise((resolve, reject) => {
       const child = spawn(command, fullArgs, {
         cwd: this.assetRoot,
-        shell: process.platform === "win32",
+        windowsHide: true,
         env: process.env,
       });
 

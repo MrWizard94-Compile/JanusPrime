@@ -1,4 +1,6 @@
 import { readFile } from "node:fs/promises";
+import { join, dirname } from "node:path";
+import { createRequire } from "node:module";
 import { Command } from "commander";
 import { AssigneeSchema, PatchProposalSchema, TaskStatusSchema } from "@aether/shared";
 import { ContextResolver } from "@aether/context";
@@ -11,7 +13,7 @@ import {
   type CreateWorktreeOptions,
 } from "@aether/worktree-manager";
 import { OrchestratorService, type DelegationPlan } from "@aether/orchestrator";
-import { JanusUnifiedService, loadJanusConfig } from "@janus/integrations";
+import { CommsService, JanusUnifiedService, loadJanusConfig } from "@janus/integrations";
 import { findRepoRoot } from "./repo.js";
 import { registerJanusCommands } from "./janus-commands.js";
 
@@ -118,7 +120,7 @@ export function buildProgram(cliName: "janus" | "aether" = "aether"): Command {
     .requiredOption("-t, --task <taskId>", "Task identifier")
     .option("-b, --base <branch>", "Base branch")
     .option("-w, --workload <id>", "Workload whose cloned repo owns the worktree")
-    .option("--recreate", "Tear down any existing worktree/branch and rebuild from base", false)
+    .option("--recreate", "Tear down pre-existing worktree/branch and rebuild from base", false)
     .action(
       async (options: {
         task: string;
@@ -512,6 +514,141 @@ export function buildProgram(cliName: "janus" | "aether" = "aether"): Command {
     });
 
   registerJanusCommands(program);
+
+  const janus = program.commands.find((c) => c.name() === "janus") as Command | undefined;
+  if (janus) {
+    const comms = janus
+      .command("comms")
+      .description("MCP comms channel backed by append-only .aether/comms.jsonl mirrored to COMMS-CLAUDE-GROK.md");
+
+    comms
+      .command("post")
+      .description("Post a message (appends to JSONL and mirrors to markdown)")
+      .requiredOption("--author <name>", "Author (e.g. Grok or Claude)")
+      .requiredOption("--recipient <name>", "Recipient")
+      .option("-t, --task <taskId>", "Associated task id")
+      .requiredOption("--status <status>", "INFO | ASK | BLOCKED | HANDOFF | DONE")
+      .requiredOption("--body <text>", "Message body")
+      .action(async (opts: { author: string; recipient: string; task?: string; status: string; body: string }) => {
+        const { root } = await loadJanusConfig(process.cwd());
+        const svc = new CommsService(root);
+        const res = await svc.post({
+          author: opts.author,
+          recipient: opts.recipient,
+          task_id: opts.task,
+          status: opts.status as "INFO" | "ASK" | "BLOCKED" | "HANDOFF" | "DONE",
+          body: opts.body,
+        });
+        console.log(JSON.stringify(res, null, 2));
+      });
+
+    comms
+      .command("read")
+      .description("Read recent messages, optionally filtered by task_id and since")
+      .option("-t, --task <taskId>", "Filter to task_id")
+      .option("--since <isoTs>", "ISO-8601 lower bound (inclusive)")
+      .option("--limit <n>", "Max messages to return", "100")
+      .action(async (opts: { task?: string; since?: string; limit?: string }) => {
+        const { root } = await loadJanusConfig(process.cwd());
+        const svc = new CommsService(root);
+        const res = await svc.read({
+          task_id: opts.task,
+          since: opts.since,
+          limit: opts.limit ? Number.parseInt(opts.limit, 10) : undefined,
+        });
+        console.log(JSON.stringify(res, null, 2));
+      });
+
+    // Qwen fallback + multi-executor dispatch (under janus for "janus dispatch")
+    janus
+      .command("dispatch")
+      .description("Dispatch task execution to grok (primary) or qwen (ollama tool-calling fallback) or auto")
+      .requiredOption("-t, --task <taskId>", "Task identifier")
+      .option("--executor <mode>", "grok | qwen | auto", "auto")
+      .action(async (options: { task: string; executor?: string }) => {
+        const repoRoot = await findRepoRoot(process.cwd());
+        const { root: cfgRoot } = await loadJanusConfig(process.cwd());
+        const raw = await readFile(join(cfgRoot, "janus.config.json"), "utf8");
+        const fullCfg = JSON.parse(raw) as Record<string, unknown>;
+        const execSection = (fullCfg["executor"] ?? fullCfg) as Record<string, unknown>;
+        const providers = ((execSection["providers"] ?? {}) as Record<string, unknown>);
+        const mode = (options.executor ?? "auto").toLowerCase();
+
+        const doQwen = async () => {
+          const qwenCfg = ((providers["qwen"] ?? {}) as Record<string, unknown>);
+          // Runtime load of built module from package dist (no static import, no barrel edit, no src relative)
+          const intRoot = join(cfgRoot, "Project-Janus", "packages", "janus-integrations");
+          const qwenJs = join(intRoot, "dist", "qwen-executor.js");
+          const mod = await import("file://" + qwenJs.replace(/\\/g, "/"));
+          const exported = mod as Record<string, unknown>;
+          interface QwenLike {
+            new (r: string, c: Record<string, unknown>): { execute(id: string): Promise<Record<string, unknown>> };
+          }
+          const cand = exported["QwenExecutor"] ?? exported["default"];
+          const makeCtor = (x: unknown): QwenLike => x as QwenLike;
+          const QwenCtor = makeCtor(cand);
+          const qwen = new QwenCtor(repoRoot, fullCfg);
+          const result = await qwen.execute(options.task);
+          console.log(JSON.stringify({ executor: "qwen", result }, null, 2));
+          if (!result || (result as { passed?: boolean }).passed !== true) {
+            process.exitCode = 1;
+          }
+        };
+
+        if (mode === "qwen") {
+          await doQwen();
+          return;
+        }
+        if (mode === "grok") {
+          console.log(JSON.stringify({ executor: "grok", note: "primary handled via external grok cli per dispatch-executor.ps1", task: options.task }));
+          return;
+        }
+        // auto: prefer qwen path for this fallback impl (grok is external)
+        if (providers["qwen"]) {
+          await doQwen();
+        } else {
+          console.log(JSON.stringify({ executor: "auto", note: "no qwen provider, nothing to dispatch in this stub" }));
+        }
+      });
+  }
+
+  // Also expose top-level dispatch for direct "node bin.js dispatch" (ps1 probe compatibility)
+  program
+    .command("dispatch")
+    .description("Dispatch task to executor (alias)")
+    .requiredOption("-t, --task <taskId>", "Task identifier")
+    .option("--executor <mode>", "grok | qwen | auto", "auto")
+    .action(async (options: { task: string; executor?: string }) => {
+      // Delegate to janus sub impl by re-invoking same logic (dupe small for no extra files)
+      const repoRoot = await findRepoRoot(process.cwd());
+      const { root: cfgRoot } = await loadJanusConfig(process.cwd());
+      const raw = await readFile(join(cfgRoot, "janus.config.json"), "utf8");
+      const fullCfg = JSON.parse(raw) as Record<string, unknown>;
+      const execSection = (fullCfg["executor"] ?? fullCfg) as Record<string, unknown>;
+      const providers = ((execSection["providers"] ?? {}) as Record<string, unknown>);
+      const mode = (options.executor ?? "auto").toLowerCase();
+
+      if (mode === "qwen" || (mode === "auto" && providers["qwen"])) {
+        const intRoot = join(cfgRoot, "Project-Janus", "packages", "janus-integrations");
+        const qwenJs = join(intRoot, "dist", "qwen-executor.js");
+        const mod = await import("file://" + qwenJs.replace(/\\/g, "/"));
+        const exported = mod as Record<string, unknown>;
+        interface QwenLike {
+          new (r: string, c: Record<string, unknown>): { execute(id: string): Promise<Record<string, unknown>> };
+        }
+        const cand = exported["QwenExecutor"] ?? exported["default"];
+        const makeCtor = (x: unknown): QwenLike => x as QwenLike;
+        const QwenCtor = makeCtor(cand);
+        const qwen = new QwenCtor(repoRoot, fullCfg);
+        const result = await qwen.execute(options.task);
+        console.log(JSON.stringify({ executor: "qwen", result }, null, 2));
+        if (!result || (result as { passed?: boolean }).passed !== true) {
+          process.exitCode = 1;
+        }
+      } else {
+        console.log(JSON.stringify({ executor: mode, note: "delegated or external" }));
+      }
+    });
 
   return program;
 }

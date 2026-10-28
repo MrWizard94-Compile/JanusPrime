@@ -1,0 +1,34 @@
+{
+  "parent_id": null,
+  "assignee": "grok",
+  "workload": "janus-orchestrator",
+  "context_refs": [
+    "doc:claude",
+    "arch:janus-unified",
+    "doc:handoff-protocol",
+    "aether:patch_mode:manual"
+  ],
+  "validation_profile": "typescript-v1",
+  "spec": {
+    "objective": "Implement the Qwen2.5-coder:7b fallback executor and the `janus dispatch -t <id> --executor <grok|qwen|auto>` CLI command. When Grok is unavailable, the system must execute a task via a local Ollama Qwen agent that drives the validation gate. (scripts/dispatch-executor.ps1 already wires `janus dispatch --executor qwen` as the fallback hook.)",
+    "constraints": [
+      "Config is already in janus.config.json `executor` (primary=grok, fallback=qwen; qwen provider = ollama, base_url http://localhost:11434/v1, model qwen2.5-coder:7b, max_repair_rounds 3). Read from there.",
+      "Qwen is a MODEL, not an agentic CLI — implement a real tool-calling loop against Ollama's OpenAI-compatible /v1/chat/completions (the model advertises tool support). Tools the agent needs: read files in scope, stage a patch proposal (files[]), and submit through the gate.",
+      "Drive patches through the existing HandoffService / ManualPatchExecutor + validation kernel — do NOT hand-edit or bypass the gate. On validation failure, feed structured errors back to Qwen and retry up to max_repair_rounds, then abandon with a clear task.result.",
+      "New code in packages/janus-integrations (ollama-client.ts + qwen-executor.ts); add `dispatch` command in packages/cli/src/program.ts that selects grok|qwen|auto and reports the rollup.",
+      "No stubs/TODOs/suppressions; warnings = failures; treat model output as untrusted (validate patch JSON against PatchProposalSchema)."
+    ],
+    "files_in_scope": [
+      "packages/janus-integrations/src/ollama-client.ts",
+      "packages/janus-integrations/src/qwen-executor.ts",
+      "packages/janus-integrations/src/qwen-executor.test.ts",
+      "packages/cli/src/program.ts"
+    ],
+    "acceptance_criteria": [
+      "`janus dispatch -t <id> --executor qwen` runs a Qwen tool-loop that produces a gate-validated patch (or abandons cleanly with reason) against a real task.",
+      "`--executor auto` tries grok then qwen; `--executor grok|qwen` forces one.",
+      "Ollama client + qwen-executor unit tests pass (mock the /v1 endpoint).",
+      "Full `pnpm -r test` green; `pnpm typecheck` clean; zero warnings."
+    ]
+  }
+}

@@ -1,9 +1,9 @@
 {
   "version": "1.0.0",
-  "updated": "2026-06-20",
-  "janus_root": "C:/Users/Bulkl/OneDrive/Desktop/Janus",
-  "projects_root": "C:/Projects",
-  "local_root_prefix": "../../../../../Projects",
+  "updated": "2026-07-03",
+  "janus_root": "C:/WPAI/AI-Research/Janus",
+  "projects_root": "C:/WPAI",
+  "local_root_prefix": "../..",
   "theia_note": "Phase 4 Theia opens a workload → provisions worktree → binds AETHER_TASK_ID → janus loop run. See references/phase4-theia-ide.md",
   "workloads": [
     {
@@ -24,8 +24,8 @@
     },
     {
       "id": "omni32",
-      "description": "AssetConverter Omni32 production pipeline (84k+ textures, 1.20.1 Forge) at C:/Projects/AssetConverter",
-      "local_root": "../../../../../Projects/AssetConverter",
+      "description": "AssetConverter Omni32 production pipeline (84k+ textures, 1.20.1 Forge) at C:/WPAI/AI-Research/AssetConverter",
+      "local_root": "../AssetConverter",
       "validation_profile": "asset-audit-v1",
       "category": "janus-internal",
       "status": "canonical"
@@ -33,7 +33,7 @@
     {
       "id": "omni32-loader",
       "description": "Omni32 Loader — Forge client resource pack loader for Base Wars 32x textures",
-      "local_root": "../../../../../Projects/Omni32_Loader",
+      "local_root": "../../Minecraft/Mods-1.20.1-Forge/Omni32_Loader",
       "validation_profile": "forge-mod-v1",
       "category": "base-wars",
       "status": "active"
@@ -41,7 +41,7 @@
     {
       "id": "nodecore",
       "description": "Base Wars Node Core — ore/lush nodes, surface sterility, extraction alerts (Forge 1.20.1)",
-      "local_root": "../../../../../Projects/Node Core",
+      "local_root": "../../Minecraft/Mods-1.20.1-Forge/Node Core",
       "validation_profile": "forge-mod-v1",
       "category": "base-wars",
       "status": "active"
@@ -49,7 +49,7 @@
     {
       "id": "vs2-ship-systems",
       "description": "VS2 Ship Systems — hull integrity, flood detection, env sealing (Forge 1.20.1)",
-      "local_root": "../../../../../Projects/VS2 Ship Systems",
+      "local_root": "../../Minecraft/Mods-1.20.1-Forge/VS2 Ship Systems",
       "validation_profile": "neoforge-mixin-v1",
       "category": "base-wars",
       "status": "active"
@@ -57,7 +57,7 @@
     {
       "id": "valkyrien-portals",
       "description": "Valkyrien Portals — Immersive Portals × VS2 compat (Forge 1.20.1)",
-      "local_root": "../../../../../Projects/Valkyrien Portals",
+      "local_root": "../../Minecraft/Mods-1.20.1-Forge/Valkyrien Portals",
       "validation_profile": "neoforge-mixin-v1",
       "category": "base-wars",
       "status": "active"
@@ -65,7 +65,7 @@
     {
       "id": "big-little-fixes",
       "description": "Big Little Fixes — Base Wars QoL mod (Forge 1.20.1)",
-      "local_root": "../../../../../Projects/Big Little Fixes",
+      "local_root": "../../Minecraft/Mods-1.20.1-Forge/Big Little Fixes",
       "validation_profile": "neoforge-mixin-v1",
       "category": "base-wars",
       "status": "active"
@@ -73,7 +73,7 @@
     {
       "id": "astral-sorcery-port",
       "description": "Astral Sorcery 1.16 → 1.20.1 Forge port",
-      "local_root": "../../../../../Projects/Astral_Sorcery_Port",
+      "local_root": "../../Minecraft/Mods-1.20.1-Forge/Astral_Sorcery_Port",
       "validation_profile": "neoforge-mixin-v1",
       "category": "mc-mod",
       "status": "active"
@@ -81,7 +81,7 @@
     {
       "id": "adaptive-bosses",
       "description": "Adaptive Bosses — NeoForge 1.21.1 adaptive combat AI",
-      "local_root": "../../../../../Projects/Adaptive Bosses",
+      "local_root": "../../Minecraft/Mods-1.21.1-NeoForge/Adaptive Bosses",
       "validation_profile": "neoforge-mixin-v1",
       "category": "mc-mod",
       "status": "active"
@@ -89,7 +89,7 @@
     {
       "id": "adaptive-attacks",
       "description": "Adaptive Attacks — Adaptive Bosses ability addon (NeoForge 1.21.1)",
-      "local_root": "../../../../../Projects/Adaptive Attacks",
+      "local_root": "../../Minecraft/Mods-1.21.1-NeoForge/Adaptive Attacks",
       "validation_profile": "neoforge-mixin-v1",
       "category": "mc-mod",
       "status": "active"
@@ -97,7 +97,7 @@
     {
       "id": "living-villages",
       "description": "Living Villages v2 — NeoForge 1.21.1 Kotlin mod",
-      "local_root": "../../../../../Projects/Living_Villages",
+      "local_root": "../../Minecraft/Mods-1.21.1-NeoForge/Living_Villages",
       "validation_profile": "neoforge-mixin-v1",
       "category": "mc-mod",
       "status": "stale"
@@ -105,7 +105,7 @@
     {
       "id": "fuse",
       "description": "FUSE — ADHD task initiation desktop app (Electron)",
-      "local_root": "../../../../../Projects/FUSE",
+      "local_root": "../../Apps-Tools/FUSE",
       "validation_profile": "typescript-v1",
       "category": "desktop",
       "status": "complete"
@@ -113,7 +113,7 @@
     {
       "id": "pymason",
       "description": "PyMason — visual Python builder for ND developers",
-      "local_root": "../../../../../Projects/PyMason",
+      "local_root": "../../Apps-Tools/PyMason",
       "validation_profile": "typescript-v1",
       "category": "desktop",
       "status": "scaffold"
@@ -121,7 +121,7 @@
     {
       "id": "random-story-generator",
       "description": "Random Story Generator — Python/Tkinter/Ollama desktop app",
-      "local_root": "../../../../../Projects/Random Story Generator",
+      "local_root": "../../Apps-Tools/Random Story Generator",
       "validation_profile": "python-sandbox-v1",
       "category": "desktop",
       "status": "active"
@@ -129,7 +129,7 @@
     {
       "id": "atoz-grabber",
       "description": "AtoZ-Grabber — Amazon shift automation (Python/Playwright) [PRIVATE]",
-      "local_root": "../../../../../Projects/AtoZ-Grabber",
+      "local_root": "../../Apps-Tools/AtoZ-Grabber",
       "validation_profile": "python-sandbox-v1",
       "category": "automation",
       "status": "active",
@@ -138,7 +138,7 @@
     {
       "id": "hideout-hunter",
       "description": "HideoutHunter — PoE log monitor (PowerShell/WinForms)",
-      "local_root": "../../../../../Projects/HidoutHunter",
+      "local_root": "../../Apps-Tools/HidoutHunter",
       "validation_profile": "typescript-v1",
       "category": "desktop",
       "status": "complete"
@@ -146,7 +146,7 @@
     {
       "id": "bitburner-scripts",
       "description": "BitBurner Scripts — idle game automation JS",
-      "local_root": "../../../../../Projects/BitBurner Scripts",
+      "local_root": "../../Apps-Tools/BitBurner Scripts",
       "validation_profile": "typescript-v1",
       "category": "scripts",
       "status": "active"
@@ -154,15 +154,15 @@
     {
       "id": "astral-sorcery-116-ref",
       "description": "AstralSorcery 1.16 upstream reference clone (read-only)",
-      "local_root": "../../../../../Projects/AstralSorcery-1.16",
+      "local_root": "../../Minecraft/Reference/AstralSorcery-1.16",
       "validation_profile": "neoforge-mixin-v1",
       "category": "reference",
       "status": "reference"
     },
     {
       "id": "project-janus-legacy",
-      "description": "LEGACY Project-Janus copy — superseded by JanusPrime on OneDrive",
-      "local_root": "../../../../../Projects/Project Janus",
+      "description": "LEGACY Project-Janus copy — archived to C:/WPAI/Archives/Project Janus.zip; live folder no longer exists",
+      "local_root": "../../Archives/Project Janus.zip",
       "validation_profile": "typescript-v1",
       "category": "legacy",
       "status": "legacy"
@@ -170,7 +170,7 @@
     {
       "id": "smart-library-legacy",
       "description": "LEGACY Smart-Library copy — superseded by JanusPrime/Smart-Library",
-      "local_root": "../../../../../Projects/Smart Library",
+      "local_root": "../Smart Library",
       "validation_profile": "python-sandbox-v1",
       "category": "legacy",
       "status": "legacy"

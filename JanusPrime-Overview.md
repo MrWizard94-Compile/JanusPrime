@@ -3,7 +3,7 @@
 **Version:** 2.0.0 (documentation)  
 **Date:** 2026-06-20  
 **Repository:** [github.com/MrWizard94-Compile/JanusPrime](https://github.com/MrWizard94-Compile/JanusPrime)  
-**Workspace root:** `C:\Projects\Janus` (canonical clone path; may vary per machine)
+**Workspace root:** `C:\WPAI\AI-Research\Janus` (canonical clone path; may vary per machine)
 
 ---
 
@@ -41,7 +41,7 @@ JanusPrime is not a single application. It is an **integration layer** that merg
 |-----------|------|------|
 | **Orchestrator** (Project-Janus / Aether) | `Project-Janus/` | Task delegation, validation kernel, git worktrees, CLI, MCP server |
 | **Memory** (Smart-Library) | `Smart-Library/` | Semantic retrieval, sandboxed Python execution, verified heal write-back, doctrine storage |
-| **Asset Engine** (AssetConverter / Omni32) | `AssetConverter-sparse/` (sparse checkout) + `C:/Projects/AssetConverter` (production) | Minecraft texture pull → upscale → resource-pack build |
+| **Asset Engine** (AssetConverter / Omni32) | `AssetConverter-sparse/` (sparse checkout) + `C:/WPAI/AI-Research/AssetConverter` (production) | Minecraft texture pull → upscale → resource-pack build |
 
 An optional fourth layer, **REL Cognition** ([REL Codex Variant](https://github.com/MrWizard94-Compile/REL)), provides session logging, neural learning, and live context retrieval via a REST bridge.
 
@@ -298,7 +298,7 @@ node Project-Janus/scripts/sync-workload-manifests.mjs
 
 ```powershell
 # 1. Clone JanusPrime
-cd C:\Projects\Janus
+cd C:\WPAI\AI-Research\Janus
 
 # 2. Install orchestrator dependencies
 cd Project-Janus
@@ -326,7 +326,7 @@ Prefer the workspace shim or explicit node path (global `janus` npm shim may be 
 .\scripts\janus.ps1 status
 
 # Or set once per session
-$env:JANUS_CLI = "node C:\Projects\Janus\Project-Janus\packages\cli\dist\bin.js"
+$env:JANUS_CLI = "node C:\WPAI\AI-Research\Janus\Project-Janus\packages\cli\dist\bin.js"
 & $env:JANUS_CLI status
 ```
 
@@ -570,11 +570,11 @@ Workloads are registered repositories — not one-off folders. Each has a valida
 
 | ID | Path | Profile |
 |----|------|---------|
-| `nodecore` | `C:/Projects/Node Core` | `forge-mod-v1` |
-| `omni32-loader` | `C:/Projects/Omni32_Loader` | `forge-mod-v1` |
-| `omni32` | `C:/Projects/AssetConverter` | `asset-audit-v1` |
-| `vs2-ship-systems` | `C:/Projects/VS2 Ship Systems` | `neoforge-mixin-v1` |
-| `valkyrien-portals` | `C:/Projects/Valkyrien Portals` | `neoforge-mixin-v1` |
+| `nodecore` | `C:/WPAI/Node Core` | `forge-mod-v1` |
+| `omni32-loader` | `C:/WPAI/Omni32_Loader` | `forge-mod-v1` |
+| `omni32` | `C:/WPAI/AI-Research/AssetConverter` | `asset-audit-v1` |
+| `vs2-ship-systems` | `C:/WPAI/VS2 Ship Systems` | `neoforge-mixin-v1` |
+| `valkyrien-portals` | `C:/WPAI/Valkyrien Portals` | `neoforge-mixin-v1` |
 
 ### Janus-internal workloads
 
@@ -633,7 +633,7 @@ Omni32 upscales Minecraft mod textures to 32× for the Base Wars Forge 1.20.1 in
 
 ### Sparse checkout
 
-`AssetConverter-sparse/` in the JanusPrime repo is a sparse checkout scaffold. Production pipeline runs at `C:/Projects/AssetConverter`. Setup:
+`AssetConverter-sparse/` in the JanusPrime repo is a sparse checkout scaffold. Production pipeline runs at `C:/WPAI/AI-Research/AssetConverter`. Setup:
 
 ```powershell
 pnpm assets:setup
@@ -734,7 +734,7 @@ Metrics endpoint is documented as a placeholder in `references/observability.md`
 - [x] REL cognition bridge + `doc:rel-state` + steward concept sync
 - [x] REL in docker-compose as cognition service
 - [x] `forge-mod-v1` profile for Base Wars Forge mods
-- [x] Workload registry for all `C:/Projects` repos
+- [x] Workload registry for all `C:/WPAI` repos
 - [x] Audit remediation (2026-06-19) — 131+ tests passing
 
 ### In progress / near-term
@@ -777,7 +777,7 @@ Phase 4 wraps existing CLI/MCP contracts — it does not change CLAUDE invariant
 ## 18. Directory Layout
 
 ```
-JanusPrime/                          # Workspace root (C:\Projects\Janus)
+JanusPrime/                          # Workspace root (C:\WPAI\AI-Research\Janus)
 ├── janus.config.json                # Unified configuration
 ├── CLAUDE.md                        # Canonical doctrine (single source of truth)
 ├── AGENTS.md                        # Agent bootstrap checklist

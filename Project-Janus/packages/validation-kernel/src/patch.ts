@@ -1,12 +1,55 @@
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { PatchProposal } from "@aether/shared";
-import { assertGitSuccess, runGit } from "@aether/worktree-manager";
+import { runGit } from "@aether/worktree-manager";
 
+/** Captured prior state of a single path touched by a patch. */
+export interface PathSnapshot {
+  path: string;
+  /** Raw bytes before the patch was applied, or null if the path did not exist. */
+  content: Buffer | null;
+}
+
+/** Ordered snapshot of every path a patch touches, taken before mutation. */
+export type WorkspaceSnapshot = PathSnapshot[];
+
+async function readIfExists(absolutePath: string): Promise<Buffer | null> {
+  try {
+    return await readFile(absolutePath);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Apply a patch to the workspace, returning a snapshot of the prior state of
+ * every touched path. The snapshot is the contract that lets {@link revertWorkspace}
+ * restore the workspace to *exactly* what it was — uncommitted modifications and
+ * untracked files included — instead of resetting to HEAD (which destroys real
+ * work when a patch is validated over a dirty tree, e.g. identity validation).
+ */
 export async function applyPatch(
   workspaceRoot: string,
   proposal: PatchProposal,
-): Promise<void> {
+): Promise<WorkspaceSnapshot> {
+  const snapshot: WorkspaceSnapshot = [];
+  const seen = new Set<string>();
+
+  const touched = [
+    ...(proposal.deleted_paths ?? []),
+    ...proposal.files.map((file) => file.path),
+  ];
+  for (const relativePath of touched) {
+    if (seen.has(relativePath)) {
+      continue;
+    }
+    seen.add(relativePath);
+    snapshot.push({
+      path: relativePath,
+      content: await readIfExists(join(workspaceRoot, relativePath)),
+    });
+  }
+
   for (const relativePath of proposal.deleted_paths ?? []) {
     const targetPath = join(workspaceRoot, relativePath);
     await rm(targetPath, { force: true });
@@ -18,32 +61,39 @@ export async function applyPatch(
     await mkdir(dirname(targetPath), { recursive: true });
     await writeFile(targetPath, file.content, "utf8");
   }
+
+  return snapshot;
 }
 
-/** Revert only paths touched by a patch — never `git clean` the whole worktree. */
+/**
+ * Restore the workspace to the exact pre-apply state captured in `snapshot`.
+ *
+ * Each path is rewritten with its prior bytes, or removed if it did not exist
+ * before. The git index is then unstaged for the touched paths to undo the
+ * staged deletions {@link applyPatch} created for `deleted_paths`; the working
+ * tree content we just wrote is authoritative. This never reverts unrelated
+ * paths and never `git clean`s the worktree.
+ */
 export async function revertWorkspace(
   workspaceRoot: string,
-  proposal?: PatchProposal,
+  snapshot?: WorkspaceSnapshot,
 ): Promise<void> {
-  const paths = [
-    ...(proposal?.files.map((file) => file.path) ?? []),
-    ...(proposal?.deleted_paths ?? []),
-  ];
-
-  if (paths.length === 0) {
+  if (!snapshot || snapshot.length === 0) {
     return;
   }
 
-  // Restore tracked content (modified files + deletions) from HEAD. Run per
-  // path: a single batched `git restore` aborts wholesale when any pathspec is
-  // an untracked new file, which would leave a staged deletion un-reverted (the
-  // mixed write+delete case). A per-path restore that fails for an untracked
-  // path is harmless — `git clean` removes it below.
-  for (const path of paths) {
-    await runGit(workspaceRoot, ["restore", "--staged", "--worktree", "--", path]);
+  for (const entry of snapshot) {
+    const targetPath = join(workspaceRoot, entry.path);
+    if (entry.content === null) {
+      await rm(targetPath, { force: true });
+    } else {
+      await mkdir(dirname(targetPath), { recursive: true });
+      await writeFile(targetPath, entry.content);
+    }
   }
 
-  // Remove any untracked files the patch introduced.
-  const clean = await runGit(workspaceRoot, ["clean", "-fd", "--", ...paths]);
-  assertGitSuccess(clean, "clean patched paths");
+  // Undo index staging from applyPatch (the `git rm` of deleted_paths). A mixed
+  // reset restores the index entry for these paths to HEAD without touching the
+  // working tree we just rewrote. Untracked paths are simply ignored.
+  await runGit(workspaceRoot, ["reset", "-q", "--", ...snapshot.map((entry) => entry.path)]);
 }

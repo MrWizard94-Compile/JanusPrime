@@ -2,11 +2,11 @@
   "mcpServers": {
     "janus": {
       "command": "node",
-      "args": ["C:/Projects/Janus/Project-Janus/packages/mcp-server/dist/bin.js"],
+      "args": ["C:/WPAI/AI-Research/Janus/Project-Janus/packages/mcp-server/dist/bin.js"],
       "env": {
-        "JANUS_ROOT": "C:/Projects/Janus",
-        "AETHER_REPO_ROOT": "C:/Projects/Janus",
-        "AETHER_TASK_ID": "task-07d0f3a7-aac9-42c2-9aa7-5d7b290d171d"
+        "JANUS_ROOT": "C:/WPAI/AI-Research/Janus",
+        "AETHER_REPO_ROOT": "C:/WPAI/AI-Research/Janus",
+        "AETHER_TASK_ID": "task-f92a033e-b88d-4195-8df4-8a30516bd3ec"
       }
     }
   }

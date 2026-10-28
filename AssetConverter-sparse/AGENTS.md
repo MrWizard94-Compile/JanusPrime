@@ -1,14 +1,21 @@
-﻿# AGENTS.md — Asset Engine Bootstrap
+# AssetConverter / Omni32 component entry
 
-**Janus doctrine:** Load **[../CLAUDE.md](../CLAUDE.md)** first — workspace single source of truth. Asset mutations must pass `asset-audit-v1` validation (CLAUDE §1, §5).
+The accepted `main` of
+[WPAI Constitution](https://github.com/MrWizard94-Compile/Agents-Constitution)
+alone owns constitutional law. Use `wpai-constitution`: freeze and verify one
+accepted commit and read its SKILL, SOURCE manifest, always-load set and
+applicable law from that same revision. Generated mirrors are distributions,
+not authority. Start with [workspace AGENTS](../AGENTS.md) and
+[project doctrine](../CLAUDE.md); component guidance does not copy that law.
 
-## Before Asset Work
+Asset-task proposals retain the `asset-audit-v1` profile and Janus task /
+validation-receipt requirements. Read [WORKFLOW](docs/WORKFLOW.md) for the
+Omni32 pipeline and Git rules. Use the root command table; after build and
+operational authorization, prefer `janus assets queue` and
+`janus assets audit <modId>` over raw `ac.py` where available.
 
-1. Read `../CLAUDE.md` (`doc:claude`)
-2. Read `docs/WORKFLOW.md` — Omni32 pipeline and git rules
-3. Run `janus status` from `Project-Janus/` after build
-4. Use `janus assets queue` / `janus assets audit <modId>` — prefer Janus CLI over raw `ac.py` when available
-
-## Context Refs
-
-Always include `doc:claude` on asset tasks. Typical refs: `arch:janus-unified`, `asset:mod:<id>`, `asset:action:audit|run`.
+Keep `doc:claude` on asset tasks. Typical additional refs are
+`arch:janus-unified`, `asset:mod:<id>`, and `asset:action:audit|run`.
+Do not run pulls, upscale, builds, audits that write output, or workload
+mutation just because an onboarding document lists them. Preserve local mod
+sources and generated assets outside this governance change.

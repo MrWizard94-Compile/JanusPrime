@@ -1,0 +1,6 @@
+{
+  "role": "executor",
+  "reason": "Grok offline — Corwin operating as both orchestrator and executor per user directive (2026-06-22).",
+  "engaged": "2026-06-22",
+  "revert": "Delete this file (or set role to \"orchestrator\") when Grok is back online to re-engage the role guards."
+}
