@@ -1,20 +1,28 @@
-﻿# AGENTS.md — JanusPrime Workspace Bootstrap
+# JanusPrime project entry
 
-**Repository:** [github.com/MrWizard94-Compile/JanusPrime](https://github.com/MrWizard94-Compile/JanusPrime)
+The accepted `main` of
+[WPAI Constitution](https://github.com/MrWizard94-Compile/Agents-Constitution)
+is the single editable source of constitutional law. Use `wpai-constitution`:
+freeze and verify one accepted commit, then read its SKILL, SOURCE manifest,
+always-load set and applicable law from that same revision. Generated mirrors
+are distributions, not independent authority. Do not vendor law in this project.
 
-All agents operating in this workspace **must** load doctrine from **[CLAUDE.md](CLAUDE.md)** first. That file is the single source of truth.
+Janus product doctrine lives in [CLAUDE.md](CLAUDE.md), machine-loaded through
+`doc:claude` and `janus://doctrine/claude`. It owns product contracts, not a
+second constitution. Read [unified architecture](references/unified-architecture.md),
+[handoff protocol](Project-Janus/docs/phase0/handoff-protocol.md), and
+[executor instructions](EXECUTOR.md) before using those flows.
 
-**Grok (Executor):** Also read **[EXECUTOR.md](EXECUTOR.md)** — pre-flight gate and mutation rules. Cursor rule: `.cursor/rules/janus-executor.mdc`.
+Preserve task-id and validation-receipt requirements on workload mutations.
+Reading this entry does not authorize agent delegation, autonomous loops,
+memory seeding, service startup, publishing or spending. Those commands below
+are operational references, not a bootstrap script to run during governance QA.
+Never overwrite an existing `.env` while following setup instructions.
 
-## Before Any Work
-
-1. Read `CLAUDE.md` — invariants, token policy, validation doctrine
-2. Read `references/unified-architecture.md` — component map and flows
-3. Read `Project-Janus/docs/phase0/handoff-protocol.md` — validation gate (`doc:handoff-protocol`)
-4. **Grok:** Read `EXECUTOR.md` — no workload mutation without task id + validation receipt
-5. Copy `.env.example` → `.env` and set `REL_COGNITION_ROOT` (or `REL_BUILD_CONTEXT`) for cognition paths
-6. Run `scripts/janus.ps1 status` (or `node Project-Janus/packages/cli/dist/bin.js status`) after build
-7. Run `janus doctrine seed` once per environment (memory bootstrap)
+Project code, configuration and tests define current behavior. Product role
+names and historical roadmap claims are not evidence of live provider readiness.
+See [governance adoption](docs/GOVERNANCE-ADOPTION.md) for this migration's scope,
+preservation record and acceptance limits.
 
 ## Commands (prefer Janus over raw Aether)
 

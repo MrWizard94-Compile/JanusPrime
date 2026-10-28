@@ -1,0 +1,23 @@
+{
+  "parent_id": null,
+  "assignee": "grok",
+  "workload": "janus-orchestrator",
+  "context_refs": ["doc:claude", "doc:handoff-protocol", "aether:patch_mode:manual"],
+  "validation_profile": "typescript-v1",
+  "spec": {
+    "objective": "DEMO TASK (Qwen fallback live test): Add a pure helper `clamp(value: number, min: number, max: number): number` to packages/shared/src/demo-clamp.ts that returns value bounded to [min, max], and export the type-safe function. Add packages/shared/src/demo-clamp.test.ts with vitest cases (below min returns min, above max returns max, within returns value).",
+    "constraints": [
+      "Strict TypeScript, no any, no stubs/TODOs/suppressions.",
+      "Self-contained — no new dependencies; import vitest in the test only.",
+      "All mutations through the validation gate."
+    ],
+    "files_in_scope": [
+      "packages/shared/src/demo-clamp.ts",
+      "packages/shared/src/demo-clamp.test.ts"
+    ],
+    "acceptance_criteria": [
+      "pnpm typecheck clean; clamp behaves correctly for below/within/above.",
+      "Patch applied through the gate."
+    ]
+  }
+}

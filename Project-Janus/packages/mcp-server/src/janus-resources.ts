@@ -9,6 +9,8 @@ import {
   RelBridge,
   type JanusConfig,
 } from "@janus/integrations";
+import { CommsService } from "@janus/integrations";
+import type { CommsStatus } from "@aether/shared";
 
 export interface JanusMcpContext {
   janusRoot: string;
@@ -24,6 +26,7 @@ export function registerJanusMcpResources(
   const memory = new MemoryClient(context.config.components.memory);
   const assets = new AssetRunner(context.janusRoot, context.config);
   const relBridge = new RelBridge(context.janusRoot, context.config);
+  const comms = new CommsService(context.janusRoot);
 
   server.registerResource(
     "janus-doctrine-claude",
@@ -230,6 +233,71 @@ export function registerJanusMcpResources(
         const repair = await unified.buildRepairContext(context.boundTaskId);
         return {
           content: [{ type: "text", text: JSON.stringify(repair, null, 2) }],
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return {
+          content: [{ type: "text", text: message }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  server.registerTool(
+    "janus-comms-post",
+    {
+      description: "Append a message to the append-only comms JSONL store at .aether/comms.jsonl and mirror to COMMS-CLAUDE-GROK.md",
+      inputSchema: {
+        author: z.string().min(1),
+        recipient: z.string().min(1),
+        task_id: z.string().optional(),
+        status: z.enum(["INFO", "ASK", "BLOCKED", "HANDOFF", "DONE"]),
+        body: z.string().min(1),
+      },
+    },
+    async (input) => {
+      try {
+        const postInput = {
+          author: input.author,
+          recipient: input.recipient,
+          task_id: input.task_id,
+          status: input.status as "INFO" | "ASK" | "BLOCKED" | "HANDOFF" | "DONE",
+          body: input.body,
+        };
+        const result = await comms.post(postInput);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return {
+          content: [{ type: "text", text: message }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  server.registerTool(
+    "janus-comms-read",
+    {
+      description: "Read recent messages from .aether/comms.jsonl, filterable by task_id and since (ISO timestamp)",
+      inputSchema: {
+        task_id: z.string().optional(),
+        since: z.string().datetime().optional(),
+        limit: z.coerce.number().int().min(1).max(500).optional(),
+      },
+    },
+    async (filter) => {
+      try {
+        const result = await comms.read({
+          task_id: filter.task_id,
+          since: filter.since,
+          limit: filter.limit,
+        });
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

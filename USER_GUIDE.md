@@ -2,7 +2,7 @@
 
 **Practical, day-to-day operating manual.** For architecture and design rationale, see [`JanusPrime-Overview.md`](JanusPrime-Overview.md). For machine doctrine, see [`CLAUDE.md`](CLAUDE.md).
 
-**Workspace root:** `C:\Projects\Janus`
+**Workspace root:** `C:\WPAI\AI-Research\Janus`
 **Last verified:** 2026-06-21 (stack live, all components green)
 
 ---
@@ -13,10 +13,10 @@ JanusPrime is one system made of four cooperating parts:
 
 | Part | What it is | Where | Port |
 |------|-----------|-------|------|
-| **Orchestrator** | The `janus` CLI + task queue + validation gate (Project-Janus / Aether) | `C:\Projects\Janus\Project-Janus` | — |
-| **Memory** | Smart-Library — semantic search + sandboxed heal | `C:\Projects\Janus\Smart-Library` | `8000` |
-| **Cognition** | REL — session state, neural web, live context | `C:\Projects\REL_Codex_Variant` | `8080` |
-| **Assets** | AssetConverter / Omni32 texture pipeline | `C:\Projects\AssetConverter` | — |
+| **Orchestrator** | The `janus` CLI + task queue + validation gate (Project-Janus / Aether) | `C:\WPAI\AI-Research\Janus\Project-Janus` | — |
+| **Memory** | Smart-Library — semantic search + sandboxed heal | `C:\WPAI\AI-Research\Janus\Smart-Library` | `8000` |
+| **Cognition** | REL — session state, neural web, live context | `C:\WPAI\AI-Research\REL_Codex_Variant` | `8080` |
+| **Assets** | AssetConverter / Omni32 texture pipeline | `C:\WPAI\AI-Research\AssetConverter` | — |
 | **LLM** | Ollama running `qwen2.5-coder:7b` (shared by Memory + REL) | Docker | `11434` |
 
 Three of these (Memory, Cognition, Ollama) run as Docker containers. The Orchestrator runs on the host as a Node CLI. Assets run as host Python invoked by the CLI.
@@ -27,7 +27,7 @@ Three of these (Memory, Cognition, Ollama) run as Docker containers. The Orchest
 
 ## 1. Running the CLI
 
-The CLI **must be run from inside the workspace** (`C:\Projects\Janus` or any subdirectory) — it walks *up* the tree to find `janus.config.json`. Running it from `C:\Projects` fails with "Could not find janus.config.json".
+The CLI **must be run from inside the workspace** (`C:\WPAI\AI-Research\Janus` or any subdirectory) — it walks *up* the tree to find `janus.config.json`. Running it from `C:\WPAI` fails with "Could not find janus.config.json".
 
 Three equivalent ways to invoke it, in order of convenience:
 
@@ -39,7 +39,7 @@ janus status
 .\scripts\janus.ps1 status
 
 # 3. Direct node (the ground truth the others wrap)
-node C:\Projects\Janus\Project-Janus\packages\cli\dist\bin.js status
+node C:\WPAI\AI-Research\Janus\Project-Janus\packages\cli\dist\bin.js status
 ```
 
 > The global `janus` shim lives at `C:\Users\Bulkl\AppData\Roaming\npm\janus{,.cmd,.ps1}` and points at `Project-Janus\packages\cli\dist\bin.js`. If you ever move the workspace, repoint those three files or use the workspace shim instead.
@@ -54,12 +54,12 @@ You only do this once per machine. It's recorded here for rebuilds / new environ
 
 ```powershell
 # 1. Build the orchestrator
-cd C:\Projects\Janus\Project-Janus
+cd C:\WPAI\AI-Research\Janus\Project-Janus
 pnpm install
 pnpm build
 
 # 2. Configure environment (secrets + paths)
-cd C:\Projects\Janus
+cd C:\WPAI\AI-Research\Janus
 copy .env.example .env
 #   then edit .env — see §6
 
@@ -83,7 +83,7 @@ janus status
 ### Start / stop the stack
 
 ```powershell
-cd C:\Projects\Janus
+cd C:\WPAI\AI-Research\Janus
 
 docker compose up -d              # start all (memory, cognition, ollama)
 docker compose stop              # stop without removing
@@ -116,7 +116,7 @@ docker logs --tail 50 janusprime-cognition         # one container
 
 ### Rebuild a service after code changes
 
-Cognition (REL) builds from `C:\Projects\REL_Codex_Variant`; Memory builds from `Smart-Library/`. After editing their source:
+Cognition (REL) builds from `C:\WPAI\AI-Research\REL_Codex_Variant`; Memory builds from `Smart-Library/`. After editing their source:
 
 ```powershell
 docker compose up -d --build cognition     # rebuild + recreate REL
@@ -267,7 +267,7 @@ janus rel context -q "what's the current focus of the astral sorcery port"
 
 ## 6. Configuration
 
-### `.env` (Docker stack) — `C:\Projects\Janus\.env`
+### `.env` (Docker stack) — `C:\WPAI\AI-Research\Janus\.env`
 
 The values that matter, as currently set:
 
@@ -275,9 +275,9 @@ The values that matter, as currently set:
 OLLAMA_BASE_URL=http://ollama:11434
 OLLAMA_MODEL=qwen2.5-coder:7b                      # single shared model for Memory + REL
 
-REL_BUILD_CONTEXT=C:/Projects/REL_Codex_Variant    # canonical REL source (build context)
-REL_COGNITION_ROOT=C:/Projects/REL_Codex_Variant   # REL root the orchestrator reports
-REL_DATA_PATH=C:/Projects/REL_Codex_Variant/data   # live state volume (holds CoreState.json)
+REL_BUILD_CONTEXT=C:/WPAI/AI-Research/REL_Codex_Variant    # canonical REL source (build context)
+REL_COGNITION_ROOT=C:/WPAI/AI-Research/REL_Codex_Variant   # REL root the orchestrator reports
+REL_DATA_PATH=C:/WPAI/AI-Research/REL_Codex_Variant/data   # live state volume (holds CoreState.json)
 
 REL_API_AUTH_REQUIRED=false                        # local dev: anonymous = service role
 REL_ADMIN_PASSWORD=change-me-local-dev             # rotate before enabling auth
@@ -285,15 +285,15 @@ REL_OAUTH2_SECRET=change-me-local-dev-secret-min-32-chars
 JANUS_MEMORY_API_KEY=                              # set to require X-API-Key on memory writes
 ```
 
-> **These three `REL_*` paths must point at `C:/Projects/REL_Codex_Variant`** — the canonical, git-tracked REL with the live `data/CoreState.json`. Pointing them anywhere else is what caused the original "CoreState.json not found" / disconnected state.
+> **These three `REL_*` paths must point at `C:/WPAI/AI-Research/REL_Codex_Variant`** — the canonical, git-tracked REL with the live `data/CoreState.json`. Pointing them anywhere else is what caused the original "CoreState.json not found" / disconnected state.
 
-### `janus.config.json` (orchestrator) — `C:\Projects\Janus\janus.config.json`
+### `janus.config.json` (orchestrator) — `C:\WPAI\AI-Research\Janus\janus.config.json`
 
 Component URLs, token budgets, and self-repair policy. Highlights:
 
 - `components.memory.url` = `http://localhost:8000`
 - `components.cognition.rest_url` = `http://localhost:8080`, `root` = `env:REL_COGNITION_ROOT`
-- `components.assets.root` → `C:/Projects/AssetConverter`, entry `ac.py`
+- `components.assets.root` → `C:/WPAI/AI-Research/AssetConverter`, entry `ac.py`
 - `token_policy.brief_max_chars` = 12000, `memory.context_limit` = 3
 - `self_repair.max_validation_retries` = 5, `seed_on_accept`/`seed_on_heal` = true
 
@@ -323,10 +323,10 @@ Cross-profile rules always enforced: **CLAUDE001** (no TODO/FIXME/placeholder), 
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `Could not find janus.config.json walking up from ...` | Running `janus` outside the workspace | `cd C:\Projects\Janus` first |
+| `Could not find janus.config.json walking up from ...` | Running `janus` outside the workspace | `cd C:\WPAI\AI-Research\Janus` first |
 | `janus` errors with `MODULE_NOT_FOUND` | Global shim points at a stale path | Use `.\scripts\janus.ps1`, or repoint the three shims in `AppData\Roaming\npm` (already fixed 2026-06-21) |
 | `janusprime-cognition` shows **(unhealthy)** but `/health` returns 200 | Healthcheck used `curl`/`wget`, absent in `python:3.11-slim` | Healthcheck now uses `python urllib` (fixed in `docker-compose.yml`); `docker compose up -d --build cognition` |
-| REL logs `CoreState.json not found!` | `REL_DATA_PATH` pointed at an empty dir | Point it at `C:/Projects/REL_Codex_Variant/data` in `.env`, then recreate cognition |
+| REL logs `CoreState.json not found!` | `REL_DATA_PATH` pointed at an empty dir | Point it at `C:/WPAI/AI-Research/REL_Codex_Variant/data` in `.env`, then recreate cognition |
 | REL log: `Ollama running but model '<x>' not found ... using naive extraction` | Steward model not pulled / mismatched | Stack standardized on `qwen2.5-coder:7b`; ensure it's pulled and `OLLAMA_MODEL` matches |
 | `cognition.reachable=false` in `janus status` | Container down or wrong port | `docker ps`; `docker compose up -d cognition`; confirm `:8080` |
 | Memory writes rejected (401/403) | `JANUS_MEMORY_API_KEY` set but not sent | Match the key, or clear it for local dev |
@@ -335,7 +335,7 @@ Cross-profile rules always enforced: **CLAUDE001** (no TODO/FIXME/placeholder), 
 ### Quick full-stack reset
 
 ```powershell
-cd C:\Projects\Janus
+cd C:\WPAI\AI-Research\Janus
 docker compose down
 docker compose up -d --build
 janus status
@@ -346,7 +346,7 @@ janus status
 ## 9. What Lives Where
 
 ```
-C:\Projects\Janus\                    # workspace root — run janus from here
+C:\WPAI\AI-Research\Janus\                    # workspace root — run janus from here
 ├── janus.config.json                 # component URLs, token budgets, self-repair
 ├── .env                              # Docker secrets + paths (qwen2.5-coder:7b, REL paths)
 ├── CLAUDE.md                         # canonical doctrine (single source of truth)
@@ -361,16 +361,16 @@ C:\Projects\Janus\                    # workspace root — run janus from here
 ├── Smart-Library\                    # memory service (:8000) — Docker build context
 └── AssetConverter-sparse\            # sparse asset scaffold
 
-C:\Projects\REL_Codex_Variant\        # canonical REL cognition (:8080) — Docker build context
+C:\WPAI\AI-Research\REL_Codex_Variant\        # canonical REL cognition (:8080) — Docker build context
 ├── data\CoreState.json               # live cognition state
 ├── steward.py                        # concept extraction (qwen2.5-coder:7b)
 ├── skills\poe-build-builder\         # salvaged 2026-06-21 from the retired C:\REL
 └── archive\rel-legacy-improvement-plan\   # historical phase docs (archived)
 
-C:\Projects\AssetConverter\           # production Omni32 pipeline (ac.py)
+C:\WPAI\AI-Research\AssetConverter\           # production Omni32 pipeline (ac.py)
 ```
 
-> Retired 2026-06-21: `C:\REL` (dead snapshot) and `C:\REL_Codex_Variant` (empty mount husk). The one true REL is `C:\Projects\REL_Codex_Variant`.
+> Retired 2026-06-21: `C:\REL` (dead snapshot) and `C:\REL_Codex_Variant` (empty mount husk). The one true REL is `C:\WPAI\AI-Research\REL_Codex_Variant`.
 
 ---
 
@@ -386,7 +386,7 @@ The orchestrator exposes an MCP server (`@aether/mcp-server`). Useful resources:
 | Repair context | `janus://task/<id>/repair` |
 | REL state | `janus://rel/state-summary` |
 
-Tools: `janus-memory-query`, `janus-repair-context`. Set `AETHER_TASK_ID` to scope MCP to one task in an IDE session. MCP config lives in `C:\Projects\Janus\.mcp.json`.
+Tools: `janus-memory-query`, `janus-repair-context`. Set `AETHER_TASK_ID` to scope MCP to one task in an IDE session. MCP config lives in `C:\WPAI\AI-Research\Janus\.mcp.json`.
 
 ---
 

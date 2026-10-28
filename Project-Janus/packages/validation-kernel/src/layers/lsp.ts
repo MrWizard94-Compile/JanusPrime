@@ -1,5 +1,6 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
-import { mkdtemp, readdir, rm } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { access, mkdir, mkdtemp, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -84,7 +85,13 @@ async function collectJdtDiagnostics(
   const workspaceJava = await resolveWorkspaceJavaHome(workspaceRoot);
   const launcher = await findLauncherJar(config.jdtls?.home ?? "");
   const javaPath = resolveJdtlsProcessJavaPath(config, workspaceJava);
-  const dataDir = await mkdtemp(join(tmpdir(), "aether-jdtls-"));
+  const { dataDir, ephemeral } = await resolveJdtlsDataDir(config, workspaceRoot);
+
+  // Prime the project's `.classpath` with the build tool's resolved dependency
+  // jars before JDT.LS imports. Buildship's own Gradle import does not replicate
+  // ForgeGradle's dependency replacement and resolves the wrong Minecraft jar
+  // (false "deprecated since" diagnostics); the gradle `eclipse` task does.
+  const primed = await primeGradleEclipse(workspaceRoot, config);
 
   const configDir = resolveJdtlsConfigDir(config.jdtls?.home ?? "");
   const args = [
@@ -162,7 +169,7 @@ async function collectJdtDiagnostics(
         capabilities: {},
         workspaceFolders: [{ uri: rootUri, name: "aether-workspace" }],
         initializationOptions: {
-          settings: buildJdtlsWorkspaceSettings(workspaceJava),
+          settings: buildJdtlsWorkspaceSettings(workspaceJava, primed),
         },
       }),
       exitPromise,
@@ -211,8 +218,38 @@ async function collectJdtDiagnostics(
     }
     throw error;
   } finally {
-    await rm(dataDir, { recursive: true, force: true });
+    // Only delete throwaway temp dirs. A configured persistent data dir keeps
+    // JDT.LS's imported Gradle/Forge classpath warm across runs — nuking it
+    // would force a multi-minute cold re-import (and the timeout) every time.
+    if (ephemeral) {
+      await rm(dataDir, { recursive: true, force: true });
+    }
   }
+}
+
+/**
+ * Resolve the JDT.LS `-data` workspace directory.
+ *
+ * When `jdtls.workspace_data_dir` is configured, use a stable per-workspace
+ * subdirectory under it so each workload keeps its own warm Gradle import cache
+ * across validation runs (cold Forge imports are the dominant LSP cost and the
+ * cause of the 60s diagnostics timeouts). Falls back to an ephemeral temp dir
+ * when no persistent root is configured.
+ */
+async function resolveJdtlsDataDir(
+  config: AetherConfig,
+  workspaceRoot: string,
+): Promise<{ dataDir: string; ephemeral: boolean }> {
+  const persistentRoot = config.jdtls?.workspace_data_dir;
+  if (persistentRoot) {
+    const key = createHash("sha1").update(workspaceRoot).digest("hex").slice(0, 16);
+    const dataDir = join(persistentRoot, key);
+    await mkdir(dataDir, { recursive: true });
+    return { dataDir, ephemeral: false };
+  }
+
+  const dataDir = await mkdtemp(join(tmpdir(), "aether-jdtls-"));
+  return { dataDir, ephemeral: true };
 }
 
 class JdtlsProcessExitError extends Error {
@@ -285,6 +322,84 @@ function delay(ms: number): Promise<void> {
   });
 }
 
+/**
+ * Run the Gradle `eclipse` task so the workspace `.classpath` is regenerated with
+ * the build tool's fully-resolved dependency jars (e.g. ForgeGradle's recompiled,
+ * deobfuscated Minecraft artifact). Returns true when the task ran successfully —
+ * the caller then disables JDT.LS's own Gradle import so it trusts this classpath.
+ *
+ * Best-effort: when there is no Gradle wrapper, the feature is disabled, or the
+ * task fails, returns false and the LSP layer falls back to JDT.LS's own import.
+ * `.classpath`/`.project`/`.settings` are regenerable IDE artifacts (gitignored
+ * in MDK projects), so regenerating them never touches tracked source.
+ */
+async function primeGradleEclipse(
+  workspaceRoot: string,
+  config: AetherConfig,
+): Promise<boolean> {
+  if (config.validation?.lsp_prime_gradle_eclipse === false) {
+    return false;
+  }
+
+  const wrapper = await findGradleWrapper(workspaceRoot);
+  if (!wrapper) {
+    return false;
+  }
+
+  const timeoutMs = config.validation?.build_timeout_ms ?? 300_000;
+  return new Promise<boolean>((resolve) => {
+    // On Windows a .bat can't be spawned directly (and `shell:true` + an args
+    // array reintroduces DEP0190); route through cmd.exe /c with the wrapper
+    // path quoted. The trailing args are constant, so there is no injection
+    // surface. On POSIX gradlew is an executable shell script.
+    const child =
+      process.platform === "win32"
+        ? spawn("cmd.exe", ["/c", `"${wrapper}" eclipse --console=plain`], {
+            cwd: workspaceRoot,
+            windowsHide: true,
+          })
+        : spawn(wrapper, ["eclipse", "--console=plain"], {
+            cwd: workspaceRoot,
+            windowsHide: true,
+          });
+
+    let settled = false;
+    const finish = (value: boolean): void => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearTimeout(timer);
+      resolve(value);
+    };
+
+    const timer = setTimeout(() => {
+      child.kill("SIGTERM");
+      finish(false);
+    }, timeoutMs);
+
+    child.on("error", () => finish(false));
+    child.on("close", (code) => finish(code === 0));
+  });
+}
+
+async function findGradleWrapper(workspaceRoot: string): Promise<string | null> {
+  const candidates =
+    process.platform === "win32"
+      ? [join(workspaceRoot, "gradlew.bat")]
+      : [join(workspaceRoot, "gradlew")];
+
+  for (const candidate of candidates) {
+    try {
+      await access(candidate);
+      return candidate;
+    } catch {
+      // try next
+    }
+  }
+  return null;
+}
+
 function resolveJdtlsProcessJavaPath(
   config: AetherConfig,
   workspaceJava: ResolvedWorkspaceJava | null,
@@ -304,22 +419,39 @@ function resolveJdtlsProcessJavaPath(
 
 function buildJdtlsWorkspaceSettings(
   workspaceJava: ResolvedWorkspaceJava | null,
+  primedGradleEclipse = false,
 ): Record<string, unknown> {
-  const settings: Record<string, unknown> = {
-    "java.import.gradle.enabled": true,
-    "java.import.gradle.wrapper.enabled": true,
-    "java.configuration.updateBuildConfiguration": "automatic",
-  };
+  // JDT.LS reads preferences from a nested `java.*` object (the shape the VS Code
+  // Java client sends). When we've primed an authoritative `.classpath` via
+  // `gradlew eclipse`, disable JDT.LS's own Buildship Gradle import so it consumes
+  // that classpath (Eclipse importer) instead of re-resolving a divergent one.
+  const runtimes = workspaceJava
+    ? [
+        {
+          name: `JavaSE-${workspaceJava.version}`,
+          path: workspaceJava.home,
+          default: true,
+        },
+      ]
+    : undefined;
 
-  if (workspaceJava) {
-    settings["java.configuration.runtimes"] = [
-      {
-        name: `JavaSE-${workspaceJava.version}`,
-        path: workspaceJava.home,
-        default: true,
-      },
-    ];
+  const configuration: Record<string, unknown> = {
+    updateBuildConfiguration: primedGradleEclipse ? "disabled" : "automatic",
+  };
+  if (runtimes) {
+    configuration["runtimes"] = runtimes;
   }
 
-  return settings;
+  return {
+    java: {
+      import: {
+        gradle: {
+          enabled: !primedGradleEclipse,
+          wrapper: { enabled: true },
+        },
+        maven: { enabled: false },
+      },
+      configuration,
+    },
+  };
 }

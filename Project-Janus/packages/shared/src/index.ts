@@ -4,3 +4,4 @@ export * from "./profiles.js";
 export * from "./patch.js";
 export * from "./config.js";
 export * from "./context-catalog.js";
+export * from "./comms.js";

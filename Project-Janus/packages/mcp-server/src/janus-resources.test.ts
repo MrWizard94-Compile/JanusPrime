@@ -48,7 +48,11 @@ describe("registerJanusMcpResources", () => {
 
     const expectedResources = config.components.cognition ? 7 : 6;
     expect(registerResource).toHaveBeenCalledTimes(expectedResources);
-    expect(registerTool).toHaveBeenCalledTimes(2);
+    expect(registerTool).toHaveBeenCalledTimes(4);
+
+    const toolNames = registerTool.mock.calls.map((call) => call[0]);
+    expect(toolNames).toContain("janus-comms-post");
+    expect(toolNames).toContain("janus-comms-read");
 
     const resourceNames = registerResource.mock.calls.map((call) => call[0]);
     expect(resourceNames).toContain("janus-doctrine-claude");

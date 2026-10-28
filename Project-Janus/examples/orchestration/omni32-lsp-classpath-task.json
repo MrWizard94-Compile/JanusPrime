@@ -1,0 +1,36 @@
+{
+  "parent_id": null,
+  "assignee": "grok",
+  "workload": "janus-orchestrator",
+  "context_refs": [
+    "doc:claude",
+    "arch:janus-unified",
+    "doc:handoff-protocol",
+    "aether:patch_mode:manual"
+  ],
+  "validation_profile": "typescript-v1",
+  "spec": {
+    "objective": "Finish and verify the JDT.LS ForgeGradle classpath priming in the validation kernel so the LSP layer stops emitting target-mismatched Minecraft deprecations on Forge 1.20.1 workloads. Concretely: make JDT.LS resolve ForgeGradle's deobfuscated recomp jar (forge-1.20.1-...-recomp.jar) so omni32-loader's lsp layer no longer reports the false 'ResourceLocation(String, String) deprecated since 1.20.6'.",
+    "constraints": [
+      "Priming scaffold already exists in packages/validation-kernel/src/layers/lsp.ts: primeGradleEclipse() runs `gradlew eclipse`; buildJdtlsWorkspaceSettings() sends NESTED java.* settings and sets java.import.gradle.enabled=false when priming succeeded. Finish/repair this, do not rewrite wholesale.",
+      "Current blocker (from JDT.LS .metadata/.log): JDT.LS's GradleProjectImporter still runs ('Importing Gradle project(s)') and overwrites the primed .classpath (recomp jar entry disappears), so the false deprecation persists. Root cause: Buildship Tooling-API import does not replicate ForgeGradle's dependency replacement and resolves a 1.20.6+ Minecraft.",
+      "DO NOT edit omni32-loader source. new ResourceLocation(String, String) is the CORRECT, non-deprecated API on Minecraft 1.20.1 (ResourceLocation.fromNamespaceAndPath does not exist until 1.20.5). Migrating it would break the build.",
+      "DO NOT add @SuppressWarnings or weaken zero-tolerance globally (CLAUDE001/002).",
+      ".classpath/.project/.settings are gitignored, regenerable IDE artifacts — safe to regenerate, never commit them.",
+      "Keep the lsp_prime_gradle_eclipse config flag (default on) as the kill switch.",
+      "All mutations pass the validation kernel before disk write; operate through the gate."
+    ],
+    "files_in_scope": [
+      "packages/validation-kernel/src/layers/lsp.ts",
+      "packages/validation-kernel/src/layers/lsp.test.ts",
+      "packages/shared/src/config.ts"
+    ],
+    "acceptance_criteria": [
+      "Re-running `janus execute run -t task-3f81e9b4-e7df-4c49-810e-7d93931eccef` shows the lsp layer PASS (no ResourceLocation deprecation), with ast/rules/build still passing.",
+      "If JDT.LS cannot be made to honor the primed classpath, instead implement a documented, narrowly-scoped fallback (e.g. treat ForgeGradle MC-version-mismatch LSP deprecations as harness_infra via gate-infra signature, or LSP-advisory for forge profiles) — and justify it in the patch result. Do NOT silently disable LSP.",
+      "Full `pnpm --filter @aether/validation-kernel test` suite green, including a new test covering buildJdtlsWorkspaceSettings nested shape + enabled flag.",
+      "`pnpm typecheck` passes workspace-wide; zero new warnings.",
+      "No regression for non-Forge LSP workloads (priming is best-effort/no-op when no gradlew or flag off)."
+    ]
+  }
+}

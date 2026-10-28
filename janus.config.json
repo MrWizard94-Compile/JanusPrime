@@ -15,7 +15,7 @@
       "max_context_chars": 8000
     },
     "assets": {
-      "root": "../../../../../Projects/AssetConverter",
+      "root": "../AssetConverter",
       "entry": "ac.py",
       "python": "python"
     },
@@ -27,6 +27,26 @@
       "log_loop_outcomes": true,
       "sync_concepts_to_memory": true,
       "concept_sync_max_chars": 2000
+    }
+  },
+  "executor": {
+    "primary": "grok",
+    "fallback": "qwen",
+    "providers": {
+      "grok": {
+        "type": "grok-cli",
+        "command": "grok",
+        "model": "grok-build",
+        "headless": true,
+        "permission_mode": "bypassPermissions",
+        "output_format": "json"
+      },
+      "qwen": {
+        "type": "ollama",
+        "base_url": "http://localhost:11434/v1",
+        "model": "qwen2.5-coder:7b",
+        "max_repair_rounds": 3
+      }
     }
   },
   "self_repair": {

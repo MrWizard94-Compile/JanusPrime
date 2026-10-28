@@ -79,7 +79,7 @@ Compiler warnings, LSP warnings, and deprecation warnings are **blocking**. Fix 
 Set once per PowerShell session (or add to your profile):
 
 ```powershell
-$env:JANUS_CLI = "node C:\Projects\Janus\Project-Janus\packages\cli\dist\bin.js"
+$env:JANUS_CLI = "node C:\WPAI\AI-Research\Janus\Project-Janus\packages\cli\dist\bin.js"
 ```
 
 Shorthand after `$env:JANUS_CLI` is set:
@@ -87,7 +87,7 @@ Shorthand after `$env:JANUS_CLI` is set:
 ```powershell
 & $env:JANUS_CLI status
 & $env:JANUS_CLI brief -t task-...
-node C:\Projects\Janus\Project-Janus\packages\cli\dist\bin.js orchestrate plan -f examples/orchestration/...
+node C:\WPAI\AI-Research\Janus\Project-Janus\packages\cli\dist\bin.js orchestrate plan -f examples/orchestration/...
 ```
 
 Global `janus` npm shim may point at a stale path. Prefer `$env:JANUS_CLI` or `scripts/janus.ps1`.
@@ -98,9 +98,9 @@ Global `janus` npm shim may point at a stale path. Prefer `$env:JANUS_CLI` or `s
 
 | Workload | Path | Profile |
 |----------|------|---------|
-| nodecore | `C:\Projects\Node Core` | neoforge-mixin-v1 |
-| omni32-loader | `C:\Projects\Omni32_Loader` | neoforge-mixin-v1 |
-| omni32 | `C:\Projects\AssetConverter` | asset-audit-v1 |
+| nodecore | `C:\WPAI\Node Core` | neoforge-mixin-v1 |
+| omni32-loader | `C:\WPAI\Omni32_Loader` | neoforge-mixin-v1 |
+| omni32 | `C:\WPAI\AI-Research\AssetConverter` | asset-audit-v1 |
 
 Registry: `workloads/registry.json`
 

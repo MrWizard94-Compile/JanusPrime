@@ -1,0 +1,38 @@
+{
+  "parent_id": null,
+  "assignee": "grok",
+  "workload": "janus-orchestrator",
+  "context_refs": [
+    "doc:claude",
+    "arch:janus-unified",
+    "doc:handoff-protocol",
+    "aether:patch_mode:manual"
+  ],
+  "validation_profile": "typescript-v1",
+  "spec": {
+    "objective": "Build a real MCP comms channel so Claude (orchestrator) and the executor exchange messages over MCP instead of only the COMMS markdown file. Add two janus MCP tools: `janus-comms-post` (append a message) and `janus-comms-read` (read recent messages, filterable by task_id and since-timestamp).",
+    "constraints": [
+      "Source of truth: an append-only JSONL store at .aether/comms.jsonl (one JSON message per line: {ts, author, recipient, task_id, status, body}). Never rewrite history; append only.",
+      "Mirror each posted message to COMMS-CLAUDE-GROK.md in the existing format ([YYYY-MM-DD HH:MM] AUTHOR -> RECIPIENT . [STATUS]) so the human-readable log stays current.",
+      "Register both tools in packages/mcp-server (see existing registerTool calls in src/janus-resources.ts and src/server.ts for the pattern); back them with a CommsService in packages/janus-integrations; add shared types in packages/shared.",
+      "Add a CLI surface `janus comms post|read` mirroring the tools (see packages/cli/src/program.ts janus subcommands).",
+      "status enum: INFO | ASK | BLOCKED | HANDOFF | DONE. Validate inputs; treat all as untrusted.",
+      "No stubs/TODOs/suppressions. Warnings = failures.",
+      "All mutations through the validation gate."
+    ],
+    "files_in_scope": [
+      "packages/shared/src/comms.ts",
+      "packages/janus-integrations/src/comms-service.ts",
+      "packages/janus-integrations/src/comms-service.test.ts",
+      "packages/mcp-server/src/janus-resources.ts",
+      "packages/cli/src/program.ts"
+    ],
+    "acceptance_criteria": [
+      "`janus-comms-post` then `janus-comms-read` round-trips a message via .aether/comms.jsonl and appears in COMMS-CLAUDE-GROK.md.",
+      "`janus comms post` / `janus comms read` CLI work and are covered by tests.",
+      "New CommsService unit tests pass (append-only, filter by task_id + since).",
+      "Full `pnpm -r test` green; `pnpm typecheck` clean; zero warnings.",
+      "mcp-server tool-count test updated to reflect the two new tools."
+    ]
+  }
+}

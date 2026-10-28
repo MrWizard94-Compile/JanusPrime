@@ -57,6 +57,34 @@ describe("classifyText", () => {
     expect(d?.phase).toBe("setup");
   });
 
+  it("matches GATE-8 JDT.LS cold-import timeout / churn", () => {
+    expect(
+      classifyText("JDT.LS validation failed: Timed out waiting for JDT.LS diagnostics after 60000ms")
+        ?.signature_id,
+    ).toBe("GATE-8");
+    const d = classifyText("JDT.LS exited with code 13");
+    expect(d?.signature_id).toBe("GATE-8");
+    expect(d?.phase).toBe("lsp");
+  });
+
+  it("matches GATE-9 JDT.LS not configured", () => {
+    const d = classifyText(
+      "JDT.LS is not configured. Set jdtls.home in .aether/config.json before Java LSP validation can run.",
+    );
+    expect(d?.signature_id).toBe("GATE-9");
+    expect(d?.phase).toBe("lsp");
+  });
+
+  it("does NOT classify a Minecraft-API deprecation as infra (real diagnostic)", () => {
+    // ForgeGradle/JDT classpath divergence emits these; they must NOT be masked
+    // by a brittle infra signature or genuine deprecations would be hidden.
+    expect(
+      classifyText(
+        "The constructor ResourceLocation(String, String) has been deprecated since version 1.20.6",
+      ),
+    ).toBeNull();
+  });
+
   it("falls back to GATE-GENERIC for unrecognised exec failures", () => {
     expect(classifyText("spawn foo ENOENT")?.signature_id).toBe("GATE-GENERIC");
     expect(classifyText("bash: bar: command not found")?.signature_id).toBe("GATE-GENERIC");

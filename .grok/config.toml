@@ -1,0 +1,11 @@
+# Project-scoped MCP servers for Grok (Executor).
+# Grok walks cwd -> git root loading .grok/config.toml; this mirrors .mcp.json
+# so the Executor shares the same Janus MCP surface as the Orchestrator:
+# task brief/repair resources, system status, memory, and the comms channel
+# (janus__janus-comms-post / janus__janus-comms-read).
+[mcp_servers.janus]
+command = "node"
+args = ["C:/WPAI/AI-Research/Janus/Project-Janus/packages/mcp-server/dist/bin.js"]
+env = { JANUS_ROOT = "C:/WPAI/AI-Research/Janus", AETHER_REPO_ROOT = "C:/WPAI/AI-Research/Janus", AETHER_TASK_ID = "task-f92a033e-b88d-4195-8df4-8a30516bd3ec" }
+enabled = true
+startup_timeout_sec = 20

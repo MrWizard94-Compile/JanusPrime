@@ -11,7 +11,7 @@
 | Orchestrator | `Project-Janus/` | Task delegation, validation kernel, git worktrees |
 | Memory | `Smart-Library/` | Semantic retrieval, sandboxed heal, doctrine storage |
 | Assets | `AssetConverter-sparse/` | Texture pull → upscale → build (Omni32) |
-| Doctrine | `CLAUDE.md` | Single source of truth for all agents and gates |
+| Project doctrine | `CLAUDE.md` | Janus product contracts loaded through `doc:claude`; constitutional law comes only from accepted WPAI Constitution `main` via `AGENTS.md` |
 | Cognition (optional) | [REL Codex Variant](https://github.com/MrWizard94-Compile/REL) | Session logging, neural learn, context load via REST bridge |
 | Config | `janus.config.json` | Unified workspace configuration |
 

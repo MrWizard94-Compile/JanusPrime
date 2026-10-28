@@ -1,71 +1,55 @@
-﻿# AGENTS.md — Supervisory Workflow
+# Smart-Library component entry
 
-Guidance for AI agents and contributors working on the Smart Code Library.
+The accepted `main` of
+[WPAI Constitution](https://github.com/MrWizard94-Compile/Agents-Constitution)
+alone owns constitutional law. Use `wpai-constitution`: freeze and verify one
+accepted commit and read its SKILL, SOURCE manifest, always-load set and
+applicable law from that same revision. Generated mirrors are distributions,
+not authority. Start with [workspace AGENTS](../AGENTS.md) and
+[project doctrine](../CLAUDE.md); component guidance does not copy that law.
 
-**Janus doctrine:** Load **[../CLAUDE.md](../CLAUDE.md)** first — it is the workspace single source of truth. Memory writes must follow CLAUDE §1 (validation before mutation) and §6 (verified heal write-back only).
+This is the memory component inside the Janus Git root, not the separately
+located Smart Library repository. Memory writes require the authorized Janus
+workflow; never seed unverified heals as accepted repairs.
 
----
+## Project layout
 
-## Project Layout
+`smart_code_lib/` contains the FastAPI gateway, environment configuration,
+Chroma database adapter and sandbox runner. `tests/` contains the mocked
+pytest suite; `references/` owns architecture, API, setup and security docs.
 
-```
-smart_code_lib/          # Application package
-  main.py                # FastAPI gateway
-  config.py              # Environment configuration
-  database/              # Chroma vector store
-  sandbox/               # Self-healing code runner
-tests/                   # Pytest suite (mocked, no live Ollama)
-references/              # Architecture, API, setup, security docs
-```
+## Development and testing
 
----
+Read [architecture](references/architecture.md) and
+[API reference](references/api-reference.md) before changing behavior.
+Implement in `smart_code_lib/`; retain the local Ollama / HuggingFace boundary
+rather than adding cloud dependencies. Document API and security changes in
+`references/`. The component CI contract is `.github/workflows/ci.yml`.
 
-## Development Workflow
+Declared commands from this directory:
 
-1. **Read** `references/architecture.md` and `references/api-reference.md` before changing behavior.
-2. **Implement** in `smart_code_lib/`; keep cloud dependencies out (local Ollama + HuggingFace only).
-3. **Test** with `pip install -r smart_code_lib/requirements-dev.txt` then `python -m pytest tests/ -v`.
-4. **Document** API or security changes in `references/`.
-5. **CI** must pass (`.github/workflows/ci.yml`).
-
----
-
-## Testing Conventions
-
-- Mock Ollama, Chroma, Docker, and LLM calls — no network in unit tests.
-- Use `tests/conftest.py` fixtures: `client`, `mock_services`, `client_ollama_down`, `client_startup_failed`.
-- Security behavior lives in `tests/test_security.py`.
-
----
-
-## Security Rules
-
-- Write endpoints (`/seed`, `/execute-heal`, `/maintenance/deduplicate`) support optional `API_KEY`.
-- Enforce `MAX_CODE_BYTES` on code/content payloads.
-- Prefer Docker sandbox; respect `SANDBOX_FAIL_CLOSED` in production-like deployments.
-- See `references/security.md` for the full threat model.
-
----
-
-## Agent Roles
-
-| Role | Responsibility |
-|------|----------------|
-| **Supervisor** | Approves specs, reviews deviations |
-| **Implementer** | Writes code + tests per approved spec |
-| **Reviewer** | Runs pytest, checks docs and security alignment |
-
----
-
-## Common Commands
-
-```bash
-# Dev install
+```powershell
 pip install -r smart_code_lib/requirements-dev.txt
-
-# Run API locally
-uvicorn smart_code_lib.main:app --reload
-
-# Full test suite
 python -m pytest tests/ -v
 ```
+
+Dependency installation is a separate environment change; prefer the existing
+project environment when available. Unit tests mock Ollama, Chroma, Docker and
+LLM calls, with no network. Preserve fixtures `client`, `mock_services`,
+`client_ollama_down` and `client_startup_failed`; security behavior is covered
+in `tests/test_security.py`. Do not substitute a live service for these mocks.
+
+## Data and security boundaries
+
+Write endpoints `/seed`, `/execute-heal` and `/maintenance/deduplicate`
+support optional `API_KEY` in the existing product contract. That optional
+setting does not establish safe production authentication. Enforce
+`MAX_CODE_BYTES` on payloads; prefer the Docker sandbox and respect
+`SANDBOX_FAIL_CLOSED` for production-like use.
+Read [security](references/security.md) before changing these behaviors.
+
+The supervisor approves specifications and deviations; implementation and
+review own code, tests, docs and security alignment within that scope. Running
+`uvicorn smart_code_lib.main:app --reload` starts a live API and is not part
+of a governance-only test. No real memory, records or sandbox jobs are
+authorized by reading this entry.

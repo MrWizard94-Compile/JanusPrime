@@ -9,7 +9,7 @@ import {
 } from "./python-sandbox-executor.js";
 import { RelBridge } from "./rel-bridge.js";
 import { JanusUnifiedService } from "./unified-service.js";
-import { evaluateWpaiBudgetGate } from "./wpai-budget-gate.js";
+import { chargeWpaiBudgetRound, evaluateWpaiBudgetGate } from "./wpai-budget-gate.js";
 
 export interface LoopRoundResult {
   round: number;
@@ -131,8 +131,22 @@ export class JanusAutonomousLoop {
         });
       }
 
-      // Mid-loop abort: WPAI budget/kill gate (PR-09)
+      // Mid-loop abort + charge: WPAI budget/kill gate (PR-09)
       if (options?.wpai_budget_gate) {
+        // Charge this completed round first (estimate-only)
+        const charged = await chargeWpaiBudgetRound();
+        if (!charged.ok) {
+          roundResults.push({
+            round,
+            task_id: parentId,
+            kind: "identity",
+            status: "failed",
+            passed: false,
+            detail: `wpai_budget_charge_abort:${charged.reason}`,
+          });
+          break;
+        }
+        // Then refuse the next round if it would exceed caps
         const gate = await evaluateWpaiBudgetGate();
         if (!gate.ok) {
           roundResults.push({

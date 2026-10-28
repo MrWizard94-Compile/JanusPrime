@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/WPAI/AI-Research/Janus/.claude/hooks/role-guard-edit.js\"",
+            "statusMessage": "Role guard: edit scope"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/WPAI/AI-Research/Janus/.claude/hooks/role-guard-exec.js\"",
+            "statusMessage": "Role guard: exec scope"
+          }
+        ]
+      }
+    ]
+  }
+}

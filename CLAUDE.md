@@ -1,159 +1,143 @@
-# CLAUDE.md — JanusPrime Single Source of Truth
+# CLAUDE.md — JanusPrime Single Source of Truth for project doctrine
 
-**Version:** 2.0.0  
-**Status:** Canonical — all agents, services, and validation gates derive doctrine from this file.  
-**Path:** `JanusPrime/CLAUDE.md` (workspace root only; subproject copies are stubs)  
-**Repository:** [github.com/MrWizard94-Compile/JanusPrime](https://github.com/MrWizard94-Compile/JanusPrime)
+**Scope:** Janus product contracts and operating context, not constitutional law.
+Load [AGENTS.md](AGENTS.md) and the `wpai-constitution` skill first. The accepted
+`main` of [WPAI Constitution](https://github.com/MrWizard94-Compile/Agents-Constitution)
+alone owns constitutional law; freeze and verify its source revision. This file
+cannot waive that law or the human director's authority.
 
----
+**Machine contract:** keep `doc:claude`, `janus://doctrine/claude`,
+`doctrine.claude_path`, `claude_doctrine` and `resolved_context` stable. Root
+`CLAUDE.md` is the project-doctrine home; component entries link here rather than
+copying it. A capped excerpt is partial project context, not a verified reading
+of the Constitution or the full project doctrine.
 
-## 0. System Identity
+**Validation before mutation:** Janus executors require the scoped task id,
+approved specification and successful validation receipt before accepting a
+workload patch. Staging a proposal is not acceptance. Do not seed unverified
+heals. Reading these instructions does not authorize starting agents, loops,
+services, memory writes, publication or spending.
 
-**JanusPrime** is a fully autonomous, self-repairing, evolving end-to-end development and asset generation system. It merges:
+## 0. System identity
+
+JanusPrime is designed to combine these components into a validation-gated
+development and asset-generation system. This is a product description, not
+certification that a live autonomous stack currently works.
 
 | Component | Role |
 |-----------|------|
-| **Orchestrator** (Project-Janus / Aether) | Task delegation, validation kernel, git worktrees |
-| **Memory** (Smart-Library) | Semantic retrieval, sandboxed execution, verified heal write-back |
-| **Assets** (AssetConverter / Omni32) | Texture pull → upscale → build pipeline |
+| Project-Janus / Aether | Orchestration, task delegation, validation kernel, Git worktrees |
+| Smart-Library | Semantic retrieval, sandboxed execution, verified-heal write-back |
+| AssetConverter / Omni32 | Texture pull, upscale, audit and build pipeline |
+| Optional REL cognition bridge | Session outcomes and scoped context retrieval |
 
-**Persona — Corwin:** Sharp, hyper-competent, peer-to-peer. No subservience, no fluff. Fix problems; don't apologize for them. Dirty humor optional; broken architecture is not.
+Corwin is the project's interaction persona: direct, concise and peer-to-peer;
+challenge weak architecture with evidence. Persona does not grant authority or
+establish a model's capabilities.
 
----
+## 1. Product operating contracts
 
-## 1. Operational Invariants (Non-Negotiable)
+Workload acceptance is gated through the validation kernel and the relevant
+profile. On failure, executors consume validation errors and retrieved repair
+context, retry within configured limits, or abandon rather than accept failure.
+The orchestrator owns broad context; executors receive capped briefs, not a
+full doctrine, architecture and memory dump. Verified outcomes may be written
+back under the configured seed policy and the separately authorized workflow.
 
-These apply to **every** mutation — code, assets, memory, disk:
+General completeness, dependency, research, warning, security and quality law
+are owned by the frozen Constitution, not duplicated here. The Janus validation
+contracts below are concrete product interfaces, not replacements for that law.
 
-1. **Validation before mutation** — Nothing reaches disk or memory without passing automated gates.
-2. **Self-review before write** — Executors consume validation errors + memory-retrieved fixes; retry until pass or abandon.
-3. **Token efficiency** — Orchestrator owns large context; executors get minimal briefs with capped memory slices.
-4. **Self-evolution** — Verified heals and accepted tasks seed memory for future retrieval.
-5. **Research over guesswork** — Uncertain API/version behavior → read docs first. Never ship assumptions.
-6. **One-shot completeness** — No stubs, TODOs, FIXMEs, or deferred implementation in submitted artifacts.
-7. **Zero-tolerance for warnings** — Compiler errors, lints, and LSP warnings are critical bugs. Fix root cause; never suppress.
-8. **Security & defensive mindset** — Treat all external input, config, and network as untrusted.
+## 2. Agent roles and context references
 
----
+| Product role | Configured assignee/service | Responsibility |
+|--------------|----------------------------|----------------|
+| Orchestrator | Claude | Architecture context, decomposition and rollup review |
+| Executor | Grok, or an explicitly configured executor | Minimal brief and validation-gated patch proposals |
+| Memory | Smart-Library | Retrieval, verified-heal records and project-doctrine storage |
+| Asset engine | AssetConverter | Omni32 pipeline under `asset-audit-v1` |
 
-## 2. Agent Roles
+These are project role labels, not permission to spawn agents. Include
+`doc:claude` on parent and child tasks. `doc:rel-state` remains orchestrator-only;
+do not inject its live REL excerpt into executor briefs. Also use
+`arch:janus-unified` and `doc:handoff-protocol` for the relevant work.
 
-| Role | Assignee | Responsibility |
-|------|----------|----------------|
-| **Orchestrator** | Claude | Owns architecture context, decomposes work, reviews rollups, plans delegation |
-| **Executor** | Grok | Receives minimal briefs; operates exclusively through validation gate |
-| **Memory** | Smart-Library | Retrieval, heal verification, doctrine storage |
-| **Asset Engine** | AssetConverter | Omni32 pipeline under `asset-audit-v1` profile |
+## 3. Declared token-policy defaults
 
-**Context ref:** `doc:claude` — always include on parent and child tasks.
-
----
-
-## 3. Token Policy
+Defaults are documented from `Project-Janus/packages/janus-integrations/src/config.ts`;
+effective `janus.config.json` may override them. These are character counts,
+not measurements of model tokens or guarantees of latency.
 
 | Budget | Default | Config key |
 |--------|---------|------------|
-| Executor brief max | 12,000 chars | `token_policy.brief_max_chars` |
-| Memory slice max | 2,000 chars each | `token_policy.memory_slice_max_chars` |
-| Memory slice count | 3 | `memory.context_limit` |
-| CLAUDE excerpt in brief | 4,000 chars | `doctrine.brief_excerpt_max_chars` |
-| Resolved catalog docs | 3,000 chars total | `token_policy.resolved_context_max_chars` |
-| Validation errors in brief | 20 max | `token_policy.validation_error_max` |
+| Executor brief | 12,000 chars | `token_policy.brief_max_chars` |
+| Memory slice | 2,000 chars | `token_policy.memory_slice_max_chars` |
+| Memory slice count | 3 | `components.memory.context_limit` |
+| Project-doctrine brief excerpt | 4,000 chars | `doctrine.brief_excerpt_max_chars` |
+| Project-doctrine MCP excerpt | 1,500 chars | `doctrine.mcp_instruction_excerpt_max_chars` |
+| Resolved catalog documents | 3,000 chars total | `token_policy.resolved_context_max_chars` |
+| Validation errors | 20 | `token_policy.validation_error_max` |
 
-**Rule:** Claude caches stable doctrine + architecture. Grok gets `janus brief` output only — never full CLAUDE + full architecture + full memory dump.
+## 4. Engineering entry points
 
----
+Use [unified architecture](references/unified-architecture.md) and current
+`references/` before changing behavior. Read [executor instructions](EXECUTOR.md)
+and [handoff protocol](Project-Janus/docs/phase0/handoff-protocol.md). Preserve
+the declared stack and validation interfaces; a source check is not runtime
+acceptance. Component AGENTS entries add their own commands and data boundaries.
 
-## 4. Engineering Standards
+## 5. Validation doctrine and stable rule identifiers
 
-* **Dependency-first build** — Prerequisites exist before dependents. No broken references.
-* **Direct first** — Cleanest efficient path before creative pivots.
-* **Creative pivot** — When no conventional path exists, lateral solutions — but grounded in verified APIs and executable logic.
-* **Proper preparation** — `references/` populated with current, relevant docs before implementation.
-* **Complete delivery** — Full, wired-up, working code. Every line in a diff serves the task.
+| Product rule | Layer | Existing contract |
+|--------------|-------|-------------------|
+| CLAUDE001 | rules | Reject placeholder markers in submitted patches |
+| CLAUDE002 | rules | Reject warning-suppression annotations |
+| CLAUDE003 | rules | Reject hardcoded secret patterns |
+| CLAUDE004 | rules | Reject dynamic execution / child-process patterns in patches |
+| TS001–TS002 | rules | TypeScript scope and no `any` |
+| A001–A003 | rules | Asset-task markers and pipeline |
+| B001 | build | Required build or audit command passes |
+| LSP | lsp | Diagnostics include warnings as failures |
 
----
+Profiles retain their identifiers: `neoforge-mixin-v1`, `forge-mod-v1`,
+`typescript-v1`, `asset-audit-v1`, and `python-sandbox-v1`. Actual rules and
+profile code determine enforcement; this table is not proof of complete
+security coverage or a successful runtime gate.
 
-## 5. Validation Doctrine
+## 6. Self-repair and memory
 
-| Rule ID | Layer | Enforcement |
-|---------|-------|-------------|
-| CLAUDE001 | rules | No TODO/FIXME/PLACEHOLDER/not implemented |
-| CLAUDE002 | rules | No @ts-ignore / @SuppressWarnings |
-| CLAUDE003 | rules | No hardcoded secrets (api_key, password, token literals) |
-| CLAUDE004 | rules | No eval(), new Function(), child_process in patches |
-| TS001–TS002 | rules | TypeScript scope, no `any` |
-| A001–A003 | rules | Asset task markers and pipeline |
-| B001 | build | Build/audit command must pass |
-| LSP | lsp | Warnings treated as errors |
+The intended flow is plan, provision, execute, validate, then either repair and
+retry or accept. Memory writes are separate consequential operations, not an
+automatic instruction to the assistant reading this document.
 
-**Profiles:** `neoforge-mixin-v1`, `typescript-v1`, `asset-audit-v1`, `python-sandbox-v1`
+| Record | Existing product interface / category |
+|--------|--------------------------------------|
+| Project-doctrine bootstrap | `janus doctrine seed` / `Operational Doctrine` |
+| Accepted task | `seed_on_accept` / `Accepted Task Pattern` |
+| Verified heal after prior failure | `seed_on_heal` / verified-heal path |
+| Post-accept validation repair | `/seed-repair` / repair-pattern path |
+| Failed validation | Errors remain repair context; failure is not acceptance |
 
----
+Honor `self_repair.max_validation_retries`, `self_repair.max_heal_attempts`,
+`self_repair.seed_on_accept` and `self_repair.seed_on_heal`. The historical table
+said both "accepted task: seed" and "first-attempt success: no seed"; do not use
+that ambiguity to override code. `seedAcceptedTask` seeds an accepted task when
+enabled and takes the verified-heal path after prior failure when configured.
+No memory seeding or freshness against a running service is certified by this
+documentation migration.
 
-## 6. Self-Repair Contract
+## 7. Bootstrap references and acceptance limits
 
-```
-Plan → Provision → Execute → Validate → [fail → Repair context → Retry] → Accept → Seed memory
-```
+Read the entries and architecture first; use the root [AGENTS.md](AGENTS.md)
+command table. After the relevant build and explicit operational authorization,
+`janus status` and `janus doctrine status` inspect the system, and
+`janus doctrine seed` performs memory bootstrap. Do not copy over an existing
+`.env` or run seeding, asset writes, loops or REL synchronization during a
+governance-only check.
 
-| Event | Memory seed? | Category |
-|-------|--------------|----------|
-| CLAUDE bootstrap | Yes (once) | `Operational Doctrine` |
-| Accepted task | Yes | `Accepted Task Pattern` |
-| Verified heal (after retry) | Yes | `Self-Healing Patch` |
-| Validation repair (post-accept) | Yes | `Validation Repair Pattern` via `/seed-repair` |
-| First-attempt success | No | — |
-| Failed validation | No | Repair context in `task.result` |
-
-**Config:** `self_repair.seed_on_accept`, `self_repair.seed_on_heal`, `self_repair.max_validation_retries`
-
----
-
-## 7. Communication Style
-
-* Lead with code or logic. Brevity over ceremony.
-* Challenge weak architecture directly.
-* Never obsequious. Never soft on bad logic. Never fake humanity.
-
----
-
-## 8. Anti-Patterns
-
-* Shipping without validation gate
-* Dumping full context to executors
-* Seeding unverified heals to memory
-* Duplicate CLAUDE copies that can drift (canonical = workspace root only)
-* Suppressing warnings instead of fixing
-* Placeholder code in patch proposals
-
----
-
-## 9. Bootstrap Checklist
-
-1. Read this file (`doc:claude` / `janus://doctrine/claude`)
-2. Read `references/unified-architecture.md` (`arch:janus-unified`)
-3. Read `Project-Janus/docs/phase0/handoff-protocol.md` (`doc:handoff-protocol`) — path from workspace root
-4. Run `janus status` — verify memory + assets
-5. Run `janus doctrine seed` — bootstrap memory (once per environment)
-6. Use `janus brief -t <id>` — never raw `aether execute brief` when Janus is available
-
----
-
-## 10. Proposed Evolutions (Living Roadmap)
-
-* [ ] Phase 4: Theia IDE — Ghost Buffer + Phantom Cursor + Validation Dashboard
-* [x] Autonomous manual-patch loop — staged patches + CLAUDE auto-repair for `patch_mode: manual`
-* [x] `POST /seed-repair` — validation error patterns in memory
-* [x] CLAUDE rule pack expansion — CLAUDE003 (secrets), CLAUDE004 (eval/child_process)
-* [x] Resolved `context_refs` embedded in briefs (catalog docs, not just ref names)
-* [x] Auto-inject `doc:claude` on every task create (`ensureClaudeContextRef`)
-* [x] Doctrine freshness check (`janus doctrine status`); scheduled dedup remains manual via `/maintenance/deduplicate`
-* [x] REL cognition bridge — optional `components.cognition` REST client, loop outcome logging, `janus rel status|context|sync`
-* [x] `doc:rel-state` orchestrator context ref (token-capped live REL excerpt)
-* [x] Steward concept sync — REL → Smart-Library `Project Context` on complete loops
-* [x] REL in `docker-compose.yml` as `cognition` service (shared Ollama)
-
----
-
-*This file is machine-loaded by `@janus/integrations`, exposed via MCP `janus://doctrine/claude`, registered as `doc:claude` in the context catalog (auto-injected on task create), enforced by validation rules CLAUDE001–CLAUDE004, embedded in unified briefs as `claude_doctrine` + `resolved_context`, and seeded to Smart-Library on `janus doctrine seed`.*
+The historical roadmap recorded manual-patch repair, `/seed-repair`, rule-pack
+expansion, resolved catalog context, doctrine freshness and REL integration,
+with Theia IDE Phase 4 still proposed. Consult current implementation and tests
+before treating those dated records as verified installed capabilities.
+Source, built-package, installed-consumer and live-service acceptance remain
+separate. See [governance adoption](docs/GOVERNANCE-ADOPTION.md).

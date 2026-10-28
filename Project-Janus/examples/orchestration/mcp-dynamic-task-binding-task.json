@@ -1,0 +1,34 @@
+{
+  "parent_id": null,
+  "assignee": "grok",
+  "workload": "janus-orchestrator",
+  "context_refs": [
+    "doc:claude",
+    "arch:janus-unified",
+    "doc:handoff-protocol",
+    "aether:patch_mode:manual"
+  ],
+  "validation_profile": "typescript-v1",
+  "spec": {
+    "objective": "Eliminate the stale MCP task-binding footgun. The janus MCP server binds exactly one task via a fixed AETHER_TASK_ID env; it goes stale (leader/process-cached) and caused an executor to drift onto the wrong task. Make the active task switchable at runtime so task-scoped surfaces reflect the intended task without restarting the server.",
+    "constraints": [
+      "Add an MCP tool `janus-set-active-task` (and CLI `janus task bind <id>`) that re-points the server's active task at runtime, persisting the choice to a small state file (e.g. .aether/mcp-active-task) so it survives reconnects.",
+      "Task-scoped surfaces must follow the active task: `janus-repair-context` / `resolve-task-context` / the task brief + repair must resolve against the current active task, not a value frozen at process start.",
+      "Backward compatible: AETHER_TASK_ID still seeds the INITIAL active task; if both env and state file exist, the state file (most recent explicit bind) wins. If neither is set, resolve-task-context returns a clear 'no active task bound' error (do not crash).",
+      "Preserve the existing scope-enforcement safety (calls scoped to a non-active task must still be rejected) — just make the active task re-bindable.",
+      "No stubs/TODOs/suppressions; no `as unknown as`; no relative cross-package src imports (use @aether/* / @janus/* package entrypoints)."
+    ],
+    "files_in_scope": [
+      "packages/mcp-server/src/server.ts",
+      "packages/mcp-server/src/janus-resources.ts",
+      "packages/mcp-server/src/janus-resources.test.ts",
+      "packages/cli/src/program.ts"
+    ],
+    "acceptance_criteria": [
+      "`janus-set-active-task` (MCP) and `janus task bind <id>` (CLI) switch the active task at runtime; subsequent resolve-task-context / repair calls resolve against the new task without a server restart.",
+      "State persists to .aether/mcp-active-task and is honored on reconnect; AETHER_TASK_ID still works as the initial seed.",
+      "resolve-task-context still rejects out-of-scope task ids; 'no active task' path returns a clean error, no crash.",
+      "Full `pnpm -r test` GREEN (gate only typechecks — run tests yourself); `pnpm build`; `pnpm typecheck` clean; mcp-server tool-count test updated for the new tool."
+    ]
+  }
+}
